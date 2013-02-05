@@ -1,0 +1,29 @@
+Contents:
+	i	About
+	ii	Compilation
+	iii	Linking against INIParser
+
+i About
+-------
+
+ini is a Objective-C Package for parsing INI Files.
+It uses the Foundation Framework provided in NeXT/OpenStep, Rhapsody,
+Mac OS X and GNUStep.
+
+ii Compilation
+--------------
+
+At the shell prompt, simply type:
+
+	# make
+
+To clean-up the directory, type:
+
+	# make clean
+
+iii Linking against INIParser
+-----------------------------
+
+You need to directly link against the Object Files and the Foundation Framework.
+An ar(1) Archive could not be build, because the resulting binary will
+simply not work (don't know why).
