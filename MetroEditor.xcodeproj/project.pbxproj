@@ -31,6 +31,7 @@
 		51F3902D16D4BC40008CA08E /* retrieve.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3902316D4BC40008CA08E /* retrieve.m */; };
 		51F3902E16D4BC40008CA08E /* section.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3902516D4BC40008CA08E /* section.m */; };
 		51F3903116D4BC40008CA08E /* utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3902916D4BC40008CA08E /* utils.m */; };
+		51F3903416D4C96F008CA08E /* MEWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3903316D4C96F008CA08E /* MEWindow.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -76,6 +77,8 @@
 		51F3902516D4BC40008CA08E /* section.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = section.m; sourceTree = "<group>"; };
 		51F3902816D4BC40008CA08E /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
 		51F3902916D4BC40008CA08E /* utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = utils.m; sourceTree = "<group>"; };
+		51F3903216D4C96F008CA08E /* MEWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MEWindow.h; sourceTree = "<group>"; };
+		51F3903316D4C96F008CA08E /* MEWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MEWindow.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +154,8 @@
 				51B1074416C10B1700970797 /* MEAppDelegate.h */,
 				51B1074516C10B1700970797 /* MEAppDelegate.m */,
 				51B1074716C10B1800970797 /* MainMenu.xib */,
+				51F3903216D4C96F008CA08E /* MEWindow.h */,
+				51F3903316D4C96F008CA08E /* MEWindow.m */,
 				51B1074A16C10B1800970797 /* MetroEditor.xcdatamodeld */,
 				51B1073916C10B1700970797 /* Supporting Files */,
 			);
@@ -280,6 +285,7 @@
 				51F3902D16D4BC40008CA08E /* retrieve.m in Sources */,
 				51F3902E16D4BC40008CA08E /* section.m in Sources */,
 				51F3903116D4BC40008CA08E /* utils.m in Sources */,
+				51F3903416D4C96F008CA08E /* MEWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

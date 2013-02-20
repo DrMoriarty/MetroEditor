@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface MEAppDelegate : NSObject <NSApplicationDelegate>
+@interface MEAppDelegate : NSObject <NSApplicationDelegate> 
 
 @property (assign) IBOutlet NSWindow *window;
 
@@ -17,5 +17,7 @@
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 
 - (IBAction)saveAction:(id)sender;
+- (IBAction)newDocument:(id)sender;
+- (IBAction)openDocument:(id)sender;
 
 @end

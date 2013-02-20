@@ -622,7 +622,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     if(terminals) for (Station *st in sts) {
         if(st.terminal) {
             CGPoint p1 = st.pos;
-            CGContextSetFillColorWithColor(context, [st.line.color CGColor]);
+            CGFloat components[4];
+            [st.line.color getComponents:components];
+            CGContextSetFillColor(context, components);
             drawFilledCircle(context, p1.x, p1.y, map->LineWidth/2);
         }
     }
@@ -655,7 +657,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     }
     for (Station *st in stations) {
         CGPoint p1 = st.pos;
-        CGContextSetFillColorWithColor(context, [st.line.color CGColor]);
+        CGFloat components[4];
+        [st.line.color getComponents:components];
+        CGContextSetFillColor(context, components);
         drawFilledCircle(context, p1.x, p1.y, map->LineWidth/2);
     }
 }
@@ -697,7 +701,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         CGContextSaveGState(context);
         CGContextAddArc(context, s.pos.x, s.pos.y, map->StationDiameter, 0, M_2_PI, 1);
         CGContextClip(context);
-        CGContextSetStrokeColorWithColor(context, [[NSColor whiteColor] CGColor]);
+        CGContextSetStrokeColorWithColor(context, CGColorCreateGenericRGB(1.f, 1.f, 1.f, 1.f));
         //CGContextSetFillColorWithColor(context, [s.line.color CGColor]);
         for (Segment *seg in s.segment) {
             [seg draw:context];
@@ -978,7 +982,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         CGContextStrokePath(context);
     } else if(map->StKind == LIKE_HAMBURG) {
         CGContextSaveGState(context);
-        CGContextSetStrokeColorWithColor(context, [[NSColor whiteColor] CGColor]);
+        CGContextSetStrokeColorWithColor(context, CGColorCreateGenericRGB(1.f, 1.f, 1.f, 1.f));
         CGContextSetLineCap(context, kCGLineCapSquare);
         CGFloat lw = map->LineWidth * 0.5f;
         CGContextSetLineWidth(context, lw);
@@ -1063,35 +1067,35 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 -(void)setTransferDriving:(CGFloat)_driving to:(Station *)target
 {
     if(defaultTransferDriving == 0) defaultTransferDriving = _driving;
-    [transferDriving setObject:[NSNumber numberWithFloat:_driving] forKey:target];
+    [transferDriving setObject:[NSNumber numberWithFloat:_driving] forKey:target.name];
 }
 
 -(void)setTransferWay:(int)way to:(Station *)target
 {
     if(defaultTransferWay == NOWAY) defaultTransferWay = way;
-    [transferWay setObject:[NSNumber numberWithInt:way] forKey:target];
+    [transferWay setObject:[NSNumber numberWithInt:way] forKey:target.name];
 }
 
 -(void)setTransferWay:(int)way from:(Station *)target
 {
-    [reverseTransferWay setObject:[NSNumber numberWithInt:way] forKey:target];
+    [reverseTransferWay setObject:[NSNumber numberWithInt:way] forKey:target.name];
 }
 
 -(void)setTransferWays:(NSArray *)ways to:(Station *)target
 {
-    [transferWay setObject:ways forKey:target];
+    [transferWay setObject:ways forKey:target.name];
 }
 
 -(CGFloat)transferDrivingTo:(Station *)target
 {
-    NSNumber *dr = [transferDriving objectForKey:target];
+    NSNumber *dr = [transferDriving objectForKey:target.name];
     if(dr != nil) return [dr floatValue];
     return defaultTransferDriving;
 }
 
 -(int)transferWayTo:(Station *)target
 {
-    id w = [transferWay objectForKey:target];
+    id w = [transferWay objectForKey:target.name];
     if(w == nil) return defaultTransferWay;
     if([w isKindOfClass:[NSArray class]]) return [[w objectAtIndex:0] intValue];
     else if ([w isKindOfClass:[NSNumber class]]) return [w intValue];
@@ -1100,7 +1104,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(int)transferWayFrom:(Station *)target
 {
-    NSNumber *w = [reverseTransferWay objectForKey:target];
+    NSNumber *w = [reverseTransferWay objectForKey:target.name];
     if(w != nil) return [w intValue];
     return NOWAY;
 }
@@ -1118,7 +1122,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(int)megaTransferWayFrom:(Station *)prevStation to:(Station *)transferStation
 {
-    NSArray *ways = [transferWay objectForKey:transferStation];
+    NSArray *ways = [transferWay objectForKey:transferStation.name];
     if(ways == nil) {
 #ifdef DEBUG
         NSLog(@"no way from %@ to %@", name, transferStation.name);
@@ -1137,7 +1141,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(int) megaTransferWayFrom:(Station *)prevStation to:(Station *)transferStation andNextStation:(Station *)nextStation
 {
-    NSArray *ways = [transferWay objectForKey:transferStation];
+    NSArray *ways = [transferWay objectForKey:transferStation.name];
     if(ways == nil) {
 #ifdef DEBUG
         NSLog(@"no way from %@ to %@", name, transferStation.name);
@@ -1358,7 +1362,8 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 {
     _color = color;
     CGFloat r, g, b, M, m, sd;
-    const CGFloat* rgba = CGColorGetComponents([color CGColor]);
+    CGFloat rgba[4];
+    [color getComponents:rgba];
     r = rgba[0];
     g = rgba[1];
     b = rgba[2];
@@ -1525,7 +1530,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     CGContextSetLineCap(context, kCGLineCapRound);
 
     // all line is active
-    CGContextSetStrokeColorWithColor(context, [_color CGColor]);
+    CGFloat components[4];
+    [_color getComponents:components];
+    CGContextSetStrokeColor(context, components);
     //CGContextSetFillColorWithColor(context, [_color CGColor]);
     CGContextSetLineWidth(context, map->LineWidth);
     for (Station *s in stations) {
@@ -1543,7 +1550,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(void)drawActive:(CGContextRef)context inRect:(CGRect)rect
 {
-    CGContextSetStrokeColorWithColor(context, [_color CGColor]);
+    CGFloat components[4];
+    [_color getComponents:components];
+    CGContextSetStrokeColor(context, components);
     CGContextSetLineWidth(context, map->LineWidth);
     for (Station *s in stations) {
         for (Segment *seg in s.segment) {
@@ -1748,15 +1757,21 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     stationLayer = CGLayerCreateWithContext(context, CGSizeMake(ssize, ssize), NULL);
     CGContextRef ctx = CGLayerGetContext(stationLayer);
     switch(map->StKind) {
-        case LIKE_MOSCOW:
+        case LIKE_MOSCOW: {
             CGContextSetRGBFillColor(ctx, 0, 0, 0, 1.0);
             CGContextFillEllipseInRect(ctx, CGRectMake(0, 0, ssize, ssize));
-            CGContextSetFillColorWithColor(ctx, [_color CGColor]);
+            CGFloat compnents[4];
+            [_color getComponents:compnents];
+            CGContextSetFillColor(ctx, compnents);
             drawFilledCircle(ctx, hsize, hsize, hsize-map->PredrawScale/2);
+        }
             break;
-        case LIKE_PARIS:
-            CGContextSetFillColorWithColor(ctx, [_color CGColor]);
+        case LIKE_PARIS: {
+            CGFloat components[4];
+            [_color getComponents:components];
+            CGContextSetFillColor(ctx, components);
             drawFilledCircle(ctx, hsize, hsize, hsize);
+        }
             break;
         case LIKE_LONDON:
         case LIKE_HAMBURG:
@@ -1772,15 +1787,21 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     disabledStationLayer = CGLayerCreateWithContext(context, CGSizeMake(ssize, ssize), NULL);
     ctx = CGLayerGetContext(disabledStationLayer);
     switch(map->StKind) {
-        case LIKE_MOSCOW:
+        case LIKE_MOSCOW: {
             CGContextSetRGBFillColor(ctx, 0, 0, 0, 1.0);
             CGContextFillEllipseInRect(ctx, CGRectMake(0, 0, ssize, ssize));
-            CGContextSetFillColorWithColor(ctx, [_disabledColor CGColor]);
+            CGFloat components[4];
+            [_disabledColor getComponents:components];
+            CGContextSetFillColor(ctx, components);
             drawFilledCircle(ctx, hsize, hsize, hsize-map->PredrawScale/2);
+        }
             break;
-        case LIKE_PARIS:
-            CGContextSetFillColorWithColor(ctx, [_disabledColor CGColor]);
+        case LIKE_PARIS: {
+            CGFloat components[4];
+            [_disabledColor getComponents:components];
+            CGContextSetFillColor(ctx, components);
             drawFilledCircle(ctx, hsize, hsize, hsize);
+        }
             break;
         case LIKE_LONDON:
         case LIKE_HAMBURG:
@@ -1873,25 +1894,25 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     self.thisMapName=mapName;
     
     NSFileManager *manager = [NSFileManager defaultManager];
-    NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSString *mapDirPath = [cacheDir stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@",[mapName lowercaseString]]];
+    //NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    //NSString *mapDirPath = [cacheDir stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@",[mapName lowercaseString]]];
     
     NSString *mapFile = @"";
     NSString *trpFile = @"";
     NSString *trpNewFile =  @"";
     BOOL useTrpNew=NO;
     
-    if ([[manager contentsOfDirectoryAtPath:mapDirPath error:nil] count]>0) {
-        NSDirectoryEnumerator *dirEnum = [manager enumeratorAtPath:mapDirPath];
+    if ([[manager contentsOfDirectoryAtPath:mapName error:nil] count]>0) {
+        NSDirectoryEnumerator *dirEnum = [manager enumeratorAtPath:mapName];
         NSString *file;
         
         while (file = [dirEnum nextObject]) {
             if ([[file pathExtension] isEqualToString: @"map"]) {
-                mapFile=[mapDirPath stringByAppendingPathComponent:file];
+                mapFile=[mapName stringByAppendingPathComponent:file];
             } else if ([[file pathExtension] isEqualToString: @"trp"]) {
-                trpFile=[mapDirPath stringByAppendingPathComponent:file];
+                trpFile=[mapName stringByAppendingPathComponent:file];
             } else if ([[file pathExtension] isEqualToString: @"trpnew"]) {
-                trpNewFile=[mapDirPath stringByAppendingPathComponent:file];
+                trpNewFile=[mapName stringByAppendingPathComponent:file];
                 useTrpNew=YES;
             }
         }

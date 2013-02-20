@@ -115,7 +115,7 @@
 
     CGContextSaveGState(context);
     CGRect r = CGContextGetClipBoundingBox(context);
-	CGContextSetFillColorWithColor(context, [[NSColor whiteColor] CGColor]);
+	CGContextSetFillColorWithColor(context, CGColorCreateGenericRGB(1.f, 1.f, 1.f, 1.f));
 	CGContextFillRect(context, r);
 
 #ifdef AGRESSIVE_CACHE

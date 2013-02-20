@@ -180,4 +180,14 @@
     return NSTerminateNow;
 }
 
+-(IBAction)newDocument:(id)sender
+{
+    NSLog(@"new document");
+}
+
+-(IBAction)openDocument:(id)sender
+{
+    NSLog(@"open document from delegate");
+}
+
 @end
