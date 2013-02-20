@@ -17,12 +17,20 @@
 		51B1076016C1100B00970797 /* Graph.m in Sources */ = {isa = PBXBuildFile; fileRef = 51B1075516C1100A00970797 /* Graph.m */; };
 		51B1076116C1100B00970797 /* GraphEdge.m in Sources */ = {isa = PBXBuildFile; fileRef = 51B1075716C1100A00970797 /* GraphEdge.m */; };
 		51B1076216C1100B00970797 /* GraphNode.m in Sources */ = {isa = PBXBuildFile; fileRef = 51B1075916C1100A00970797 /* GraphNode.m */; };
-		51B1076316C1100B00970797 /* ini in Resources */ = {isa = PBXBuildFile; fileRef = 51B1075A16C1100A00970797 /* ini */; };
 		51B1076516C1100B00970797 /* MyTiledLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51B1075E16C1100A00970797 /* MyTiledLayer.m */; };
 		51B1076616C1232500970797 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51B1073516C10B1600970797 /* AppKit.framework */; };
 		51B1076B16C19E6B00970797 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51B1076A16C19E6B00970797 /* QuartzCore.framework */; };
 		51B1077116C1A3D300970797 /* button_align_center.gif in Resources */ = {isa = PBXBuildFile; fileRef = 51B1076F16C1A3D300970797 /* button_align_center.gif */; };
 		51B1077216C1A3D300970797 /* button_align_middle.gif in Resources */ = {isa = PBXBuildFile; fileRef = 51B1077016C1A3D300970797 /* button_align_middle.gif */; };
+		51F3901916D4AF58008CA08E /* CityMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3901416D4AF58008CA08E /* CityMap.m */; };
+		51F3901A16D4AF58008CA08E /* MapView.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3901616D4AF58008CA08E /* MapView.m */; };
+		51F3901B16D4AF58008CA08E /* VectorLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3901816D4AF58008CA08E /* VectorLayer.m */; };
+		51F3902A16D4BC40008CA08E /* README in Resources */ = {isa = PBXBuildFile; fileRef = 51F3901D16D4BC40008CA08E /* README */; };
+		51F3902B16D4BC40008CA08E /* ini.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3901F16D4BC40008CA08E /* ini.m */; };
+		51F3902C16D4BC40008CA08E /* parse.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3902116D4BC40008CA08E /* parse.m */; };
+		51F3902D16D4BC40008CA08E /* retrieve.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3902316D4BC40008CA08E /* retrieve.m */; };
+		51F3902E16D4BC40008CA08E /* section.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3902516D4BC40008CA08E /* section.m */; };
+		51F3903116D4BC40008CA08E /* utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 51F3902916D4BC40008CA08E /* utils.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,12 +54,28 @@
 		51B1075716C1100A00970797 /* GraphEdge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GraphEdge.m; sourceTree = "<group>"; };
 		51B1075816C1100A00970797 /* GraphNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphNode.h; sourceTree = "<group>"; };
 		51B1075916C1100A00970797 /* GraphNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GraphNode.m; sourceTree = "<group>"; };
-		51B1075A16C1100A00970797 /* ini */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ini; sourceTree = "<group>"; };
 		51B1075D16C1100A00970797 /* MyTiledLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyTiledLayer.h; sourceTree = "<group>"; };
 		51B1075E16C1100A00970797 /* MyTiledLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyTiledLayer.m; sourceTree = "<group>"; };
 		51B1076A16C19E6B00970797 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		51B1076F16C1A3D300970797 /* button_align_center.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = button_align_center.gif; sourceTree = "<group>"; };
 		51B1077016C1A3D300970797 /* button_align_middle.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = button_align_middle.gif; sourceTree = "<group>"; };
+		51F3901316D4AF58008CA08E /* CityMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CityMap.h; sourceTree = "<group>"; };
+		51F3901416D4AF58008CA08E /* CityMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CityMap.m; sourceTree = "<group>"; };
+		51F3901516D4AF58008CA08E /* MapView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MapView.h; sourceTree = "<group>"; };
+		51F3901616D4AF58008CA08E /* MapView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MapView.m; sourceTree = "<group>"; };
+		51F3901716D4AF58008CA08E /* VectorLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VectorLayer.h; sourceTree = "<group>"; };
+		51F3901816D4AF58008CA08E /* VectorLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VectorLayer.m; sourceTree = "<group>"; };
+		51F3901D16D4BC40008CA08E /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		51F3901E16D4BC40008CA08E /* ini.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ini.h; sourceTree = "<group>"; };
+		51F3901F16D4BC40008CA08E /* ini.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ini.m; sourceTree = "<group>"; };
+		51F3902016D4BC40008CA08E /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
+		51F3902116D4BC40008CA08E /* parse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = parse.m; sourceTree = "<group>"; };
+		51F3902216D4BC40008CA08E /* retrieve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = retrieve.h; sourceTree = "<group>"; };
+		51F3902316D4BC40008CA08E /* retrieve.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = retrieve.m; sourceTree = "<group>"; };
+		51F3902416D4BC40008CA08E /* section.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = section.h; sourceTree = "<group>"; };
+		51F3902516D4BC40008CA08E /* section.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = section.m; sourceTree = "<group>"; };
+		51F3902816D4BC40008CA08E /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utils.h; sourceTree = "<group>"; };
+		51F3902916D4BC40008CA08E /* utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = utils.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,13 +133,19 @@
 		51B1073816C10B1600970797 /* MetroEditor */ = {
 			isa = PBXGroup;
 			children = (
+				51F3901C16D4BC40008CA08E /* ini */,
+				51F3901316D4AF58008CA08E /* CityMap.h */,
+				51F3901416D4AF58008CA08E /* CityMap.m */,
+				51F3901516D4AF58008CA08E /* MapView.h */,
+				51F3901616D4AF58008CA08E /* MapView.m */,
+				51F3901716D4AF58008CA08E /* VectorLayer.h */,
+				51F3901816D4AF58008CA08E /* VectorLayer.m */,
 				51B1075416C1100A00970797 /* Graph.h */,
 				51B1075516C1100A00970797 /* Graph.m */,
 				51B1075616C1100A00970797 /* GraphEdge.h */,
 				51B1075716C1100A00970797 /* GraphEdge.m */,
 				51B1075816C1100A00970797 /* GraphNode.h */,
 				51B1075916C1100A00970797 /* GraphNode.m */,
-				51B1075A16C1100A00970797 /* ini */,
 				51B1075D16C1100A00970797 /* MyTiledLayer.h */,
 				51B1075E16C1100A00970797 /* MyTiledLayer.m */,
 				51B1074416C10B1700970797 /* MEAppDelegate.h */,
@@ -147,6 +177,24 @@
 			);
 			name = resources;
 			path = MetroEditor/resources;
+			sourceTree = "<group>";
+		};
+		51F3901C16D4BC40008CA08E /* ini */ = {
+			isa = PBXGroup;
+			children = (
+				51F3901D16D4BC40008CA08E /* README */,
+				51F3901E16D4BC40008CA08E /* ini.h */,
+				51F3901F16D4BC40008CA08E /* ini.m */,
+				51F3902016D4BC40008CA08E /* parse.h */,
+				51F3902116D4BC40008CA08E /* parse.m */,
+				51F3902216D4BC40008CA08E /* retrieve.h */,
+				51F3902316D4BC40008CA08E /* retrieve.m */,
+				51F3902416D4BC40008CA08E /* section.h */,
+				51F3902516D4BC40008CA08E /* section.m */,
+				51F3902816D4BC40008CA08E /* utils.h */,
+				51F3902916D4BC40008CA08E /* utils.m */,
+			);
+			path = ini;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -204,9 +252,9 @@
 				51B1073D16C10B1700970797 /* InfoPlist.strings in Resources */,
 				51B1074316C10B1700970797 /* Credits.rtf in Resources */,
 				51B1074916C10B1800970797 /* MainMenu.xib in Resources */,
-				51B1076316C1100B00970797 /* ini in Resources */,
 				51B1077116C1A3D300970797 /* button_align_center.gif in Resources */,
 				51B1077216C1A3D300970797 /* button_align_middle.gif in Resources */,
+				51F3902A16D4BC40008CA08E /* README in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,6 +272,14 @@
 				51B1076116C1100B00970797 /* GraphEdge.m in Sources */,
 				51B1076216C1100B00970797 /* GraphNode.m in Sources */,
 				51B1076516C1100B00970797 /* MyTiledLayer.m in Sources */,
+				51F3901916D4AF58008CA08E /* CityMap.m in Sources */,
+				51F3901A16D4AF58008CA08E /* MapView.m in Sources */,
+				51F3901B16D4AF58008CA08E /* VectorLayer.m in Sources */,
+				51F3902B16D4BC40008CA08E /* ini.m in Sources */,
+				51F3902C16D4BC40008CA08E /* parse.m in Sources */,
+				51F3902D16D4BC40008CA08E /* retrieve.m in Sources */,
+				51F3902E16D4BC40008CA08E /* section.m in Sources */,
+				51F3903116D4BC40008CA08E /* utils.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,6 +409,7 @@
 				51B1075116C10B1800970797 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 

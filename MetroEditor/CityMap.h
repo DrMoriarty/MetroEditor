@@ -44,7 +44,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(id) initWithString:(NSString*)string font:(NSFont*)font andRect:(CGRect)rect;
 -(id) initWithAlternativeString:(NSString*)string font:(NSFont*)font andRect:(CGRect)rect;
 -(id) initWithBothString:(NSString*)string font:(NSFont*)font andRect:(CGRect)rect;
--(void) predraw:(CGContextRef)context scale:(float)scale;
+-(void) predraw:(CGContextRef)context scale:(CGFloat)scale;
 -(void) draw:(CGContextRef)context;
 @end
 
@@ -88,8 +88,8 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     // имена соседних станций
     NSMutableArray *relation;
     NSMutableArray *relationDriving;
-    Transfer *transfer;
-    Line *line;
+    __weak Transfer *transfer;
+    __weak Line *line;
     BOOL drawName;
     BOOL active;
     BOOL acceptBackLink;
@@ -126,8 +126,8 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 @property (nonatomic, readonly) int index;
 @property (nonatomic, readonly) NSString* name;
 @property (nonatomic, assign) int driving;
-@property (nonatomic, assign) Transfer* transfer;
-@property (nonatomic, assign) Line* line;
+@property (nonatomic, weak) Transfer* transfer;
+@property (nonatomic, weak) Line* line;
 @property (nonatomic, assign) BOOL drawName;
 @property (nonatomic, assign) BOOL active;
 @property (nonatomic, readonly) BOOL acceptBackLink;
@@ -339,5 +339,3 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 
 -(NSMutableArray*) describePath:(NSArray*)pathMap;
 @end
-
-CGFloat FindTransferTime(int line1, NSString* station1, int line2, NSString* station2);

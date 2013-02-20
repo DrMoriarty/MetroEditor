@@ -255,7 +255,7 @@
     NSArray *path = [self shortestPath:source to:target weight:&weight closedNodes:nil];
     [result setObject:path forKey:[NSNumber numberWithFloat:weight]];
     
-    int prevLine = -1;
+    NSInteger prevLine = -1;
     int nodeNum = 0;
     for (GraphNode *n in path) {
         if((prevLine > 0 && prevLine != n.line) || nodeNum == 1) {
@@ -280,7 +280,7 @@
     NSArray *path = [self shortestWay:source to:target weight:&weight closedNodes:clNodes];
     [result addObject:path];
     
-    int prevLine = -1;
+    NSInteger prevLine = -1;
     int nodeNum = 0;
     for (GraphNode *n in path) {
         if((prevLine > 0 && prevLine != n.line) || nodeNum == 1) {

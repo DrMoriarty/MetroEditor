@@ -40,7 +40,7 @@
     return self; 
 }
 
-- (id)initWithName:(NSString*)name andLine:(int)line {
+- (id)initWithName:(NSString*)name andLine:(NSInteger)line {
     if( (self=[super init]) ) {
 		_name = name;
         _line = line;
@@ -185,13 +185,13 @@
     return [[GraphNode alloc] init];
 }
 
-+ (id)nodeWithName:(NSString *)name andLine:(int)line {
++ (id)nodeWithName:(NSString *)name andLine:(NSInteger)line {
     return [[GraphNode alloc] initWithName:name andLine:line];
 }
 
 - (NSString*)description
 {
-    return [NSString stringWithFormat:@"%@ at %d", _name, _line];
+    return [NSString stringWithFormat:@"%@ at %ld", _name, _line];
 }
 
 @end

@@ -34,7 +34,7 @@ extern int const imagesCount;
 		
 	CALayer *selectedStationLayer;
     CALayer *selectedLocationLayer;
-	NSString *nearestStationName;
+	__weak NSString *nearestStationName;
 	//
     CGFloat Scale, MaxScale, MinScale;
     CGLayerRef cacheLayer[MAXCACHE];
@@ -45,7 +45,7 @@ extern int const imagesCount;
     Station *nearestStation;
 }
 
-@property (assign) NSString *nearestStationName;
+@property (weak) NSString *nearestStationName;
 
 @property (nonatomic, retain) CALayer *selectedStationLayer;
 @property (nonatomic, retain) CALayer *selectedLocationLayer;
@@ -70,20 +70,8 @@ extern int const imagesCount;
 // 
 
 -(void) drawString: (NSString*) s withFont: (NSFont*) font inRect: (CGRect) contextRect ;
-// find several paths and select first one
--(void) findPathFrom :(NSString*) fSt To:(NSString*) sSt FirstLine:(NSInteger) fStl LastLine:(NSInteger)sStl ;
-// forget all paths
--(void) clearPath;
-// number of paths which have been found
--(int)  pathsCount;
-// select one of the paths (num must be less then pathsCount)
--(void) selectPath:(int)num;
 
 // adjust map after resizing parent views
 -(void)adjustMap;
-// highlight the station nearest to location
--(void)setLocationAt:(Station*)st;
-//highlighting station nearest to the point
-- (void)highlightStationNearPoint:(CGPoint)point;
 
 @end

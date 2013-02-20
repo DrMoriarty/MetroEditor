@@ -12,8 +12,8 @@
 
 @interface GraphNode : NSObject<NSCopying> {
     NSString* _name;
-    int _line;
-    int _hash;
+    NSInteger _line;
+    unsigned long _hash;
     NSMutableSet *edgesIn_;
     NSMutableSet *edgesOut_;
     @public
@@ -25,10 +25,10 @@
 @property (nonatomic, readonly, retain) NSSet *edgesIn;
 @property (nonatomic, readonly, retain) NSSet *edgesOut;
 @property (nonatomic, readonly) NSString* name;
-@property (nonatomic, readonly) int line;
+@property (nonatomic, readonly) NSInteger line;
 
 - (id)init;
-- (id)initWithName:(NSString*)name andLine:(int)line;
+- (id)initWithName:(NSString*)name andLine:(NSInteger)line;
 - (BOOL)isEqualToGraphNode:(GraphNode*)otherNode;
 
 - (NSUInteger)inDegree;
@@ -41,5 +41,5 @@
 - (GraphEdge*)edgeConnectedFrom:(GraphNode*)fromNode;
 
 + (id)node;
-+ (id)nodeWithName:(NSString*)name andLine:(int)line;
++ (id)nodeWithName:(NSString*)name andLine:(NSInteger)line;
 @end

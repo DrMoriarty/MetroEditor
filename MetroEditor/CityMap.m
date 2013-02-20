@@ -115,7 +115,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
                 break;
         }
     }
-    int alternative = [str rangeOfString:@"&"].location;
+    NSUInteger alternative = [str rangeOfString:@"&"].location;
     if(alternative != NSNotFound) str = [str substringToIndex:alternative];
     str = [[str stringByReplacingOccurrencesOfString:@";" withString:@""] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     return str;
@@ -164,7 +164,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
             if(finish) break;
             else string = [string substringFromIndex:1];
         }
-        int alternative = [string rangeOfString:@"&"].location;
+        NSUInteger alternative = [string rangeOfString:@"&"].location;
         if(alternative != NSNotFound) {
             string = [string substringToIndex:alternative];
         }
@@ -253,7 +253,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
             if(finish) break;
             else string = [string substringFromIndex:1];
         }
-        int alternative = [string rangeOfString:@"&"].location;
+        NSUInteger alternative = [string rangeOfString:@"&"].location;
         if(alternative != NSNotFound) {
             string = [string substringFromIndex:alternative+1];
         }
@@ -524,7 +524,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
                     [cl addObject:v2];
                     sum.x += p2.x;
                     sum.y += p2.y;
-                    int count = [cl count];
+                    NSUInteger count = [cl count];
                     center.x = sum.x / count;
                     center.y = sum.y / count;
                 }
@@ -1451,7 +1451,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         NSArray *drs = Split(driving);
         NSArray *crds = [coordinates componentsSeparatedByString:@", "];
         NSArray *rcts = [rects componentsSeparatedByString:@", "];
-        int count = MIN( MIN([sts count], [crds count]), [rcts count]);
+        NSInteger count = MIN( MIN([sts count], [crds count]), [rcts count]);
         for(int i=0; i<count; i++) {
             NSArray *coord_x_y = [[crds objectAtIndex:i] componentsSeparatedByString:@","];
             int x = [[coord_x_y objectAtIndex:0] intValue];
@@ -1762,6 +1762,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         case LIKE_HAMBURG:
         case LIKE_VENICE:
             break;
+        case DONT_DRAW:
+        case KINDS_NUM:
+            break;
     }
 
     if(disabledStationLayer != nil) CGLayerRelease(disabledStationLayer);
@@ -1782,6 +1785,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         case LIKE_LONDON:
         case LIKE_HAMBURG:
         case LIKE_VENICE:
+            break;
+        case DONT_DRAW:
+        case KINDS_NUM:
             break;
     }
 }
@@ -1870,9 +1876,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     NSString *mapDirPath = [cacheDir stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@",[mapName lowercaseString]]];
     
-    NSString *mapFile = [NSString stringWithString:@""];
-    NSString *trpFile = [NSString stringWithString:@""];
-    NSString *trpNewFile =  [NSString stringWithString:@""];
+    NSString *mapFile = @"";
+    NSString *trpFile = @"";
+    NSString *trpNewFile =  @"";
     BOOL useTrpNew=NO;
     
     if ([[manager contentsOfDirectoryAtPath:mapDirPath error:nil] count]>0) {
@@ -2312,7 +2318,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
                 if([stn count] >= 2) st.way2 = StringToWay([stn lastObject]);
             }
         }
-        int brn = MIN([branches count], [drivings count]);
+        NSInteger brn = MIN([branches count], [drivings count]);
         for(int bi=0; bi<brn; bi++) {
             int direction = 0; // none
             NSString *br = [branches objectAtIndex:bi];
@@ -2457,8 +2463,37 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(void)predraw
 {
-    UIGraphicsBeginImageContext(CGSizeMake(100, 100));
-    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextRef    context = NULL;
+    CGColorSpaceRef colorSpace;
+    void *          bitmapData;
+    int             bitmapByteCount;
+    int             bitmapBytesPerRow;
+    
+    bitmapBytesPerRow   = (100 * 4);// 1
+    bitmapByteCount     = (bitmapBytesPerRow * 100);
+    
+    colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);// 2
+    bitmapData = calloc( bitmapByteCount, 1);// 3
+    if (bitmapData == NULL) {
+        fprintf (stderr, "Memory not allocated!");
+        return;
+    }
+    context = CGBitmapContextCreate (bitmapData,// 4
+                                     100,
+                                     100,
+                                     8,      // bits per component
+                                     bitmapBytesPerRow,
+                                     colorSpace,
+                                     kCGImageAlphaPremultipliedLast);
+    if (context== NULL)
+    {
+        free (bitmapData);// 5
+        fprintf (stderr, "Context not created!");
+        return;
+    }
+    CGColorSpaceRelease( colorSpace );// 6
+    
+
     // predraw transfers
     for (Transfer *t in transfers) {
         [t predraw:context];
@@ -2467,7 +2502,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     for (Line *l in mapLines) {
         [l predraw:context];
     }
-    UIGraphicsEndImageContext();
+    CGContextRelease(context);
 }
 
 -(NSDictionary*) calcPath :(NSString*) firstStation :(NSString*) secondStation :(NSInteger) firstStationLineNum :(NSInteger)secondStationLineNum {
@@ -2517,7 +2552,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         //NSLog(@"schedule path is %@", path);
 #endif
         //return [NSDictionary dictionaryWithObject:path forKey:[NSNumber numberWithDouble:[[path lastObject] weight]]];
-    }
+//    }
 	//NSArray *pp = [graph shortestPath:[GraphNode nodeWithName:firstStation andLine:firstStationLineNum] to:[GraphNode nodeWithName:secondStation andLine:secondStationLineNum]];
     NSDictionary *paths = [graph getPaths:[GraphNode nodeWithName:firstStation andLine:firstStationLineNum] to:[GraphNode nodeWithName:secondStation andLine:secondStationLineNum]];
     NSArray *keys = [[paths allKeys] sortedArrayUsingSelector:@selector(compare:)];
@@ -2540,8 +2575,8 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     NSString *lineStation2 = [elements objectAtIndex:2];
     NSString *station2 = [ComplexText makePlainString:[elements objectAtIndex:3]];
 
-    Station *ss1 = [[mapLines objectAtIndex:[[[MHelper sharedHelper] lineByName:lineStation1].index intValue]-1] getStation:station1];
-    Station *ss2 = [[mapLines objectAtIndex:[[[MHelper sharedHelper] lineByName:lineStation2].index intValue]-1] getStation:station2];
+    Station *ss1 = [[self lineByName:lineStation1] getStation:station1];
+    Station *ss2 = [[self lineByName:lineStation2] getStation:station2];
 #ifdef DEBUG
     if(ss1 == nil) NSLog(@"Error: station %@ from line %@ not found", station1, lineStation1);
     if(ss2 == nil) NSLog(@"Error: station %@ from line %@ not found", station2, lineStation2);
@@ -2570,8 +2605,8 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     NSString *lineStation2 = [elements objectAtIndex:2];
     NSString *station2 = [ComplexText makePlainString:[elements objectAtIndex:3]];
     
-    Station *ss1 = [[mapLines objectAtIndex:[[[MHelper sharedHelper] lineByName:lineStation1].index intValue]-1] getStation:station1];
-    Station *ss2 = [[mapLines objectAtIndex:[[[MHelper sharedHelper] lineByName:lineStation2].index intValue]-1] getStation:station2];
+    Station *ss1 = [[self lineByName:lineStation1] getStation:station1];
+    Station *ss2 = [[self lineByName:lineStation2] getStation:station2];
     if(ss1 == nil || ss2 == nil) {
 #ifdef DEBUG
         NSLog(@"Error: stations for transfer not found! %@ at %@ and %@ at %@", station1, lineStation1, station2, lineStation2);
@@ -2671,10 +2706,10 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     [[NSScanner scannerWithString:gString] scanHexInt:&g];  
     [[NSScanner scannerWithString:bString] scanHexInt:&b];  
 	
-    return [NSColor colorWithRed:((float) r / 255.0f)
-                           green:((float) g / 255.0f)  
-                            blue:((float) b / 255.0f)  
-                           alpha:1.0f];  
+    return [NSColor colorWithCIColor:[CIColor colorWithRed:((float) r / 255.0f)
+                                                     green:((float) g / 255.0f)
+                                                      blue:((float) b / 255.0f)
+                                                     alpha:1.0f]];
 	
 }
 
@@ -2754,13 +2789,11 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     [pathStationsList removeAllObjects];
     [pathTimesList removeAllObjects];
     [pathDocksList removeAllObjects];
-	int count_ = [pathMap count];
+	NSInteger count_ = [pathMap count];
     
     Station *prevStation = nil;
 	for (int i=0; i< count_; i++) {
         GraphNode *n1 = [pathMap objectAtIndex:i];
-        SchPoint *sp1 = nil;
-        if([n1 isKindOfClass:[SchPoint class]]) sp1 = (SchPoint*)n1;
         Line* l = [mapLines objectAtIndex:n1.line-1];
         Station *s = [l getStation:n1.name];
 #ifdef DEBUG
@@ -2778,10 +2811,6 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
             activeExtent = CGRectUnion(activeExtent, s.boundingBox);
             if(DrawName == NAME_ALTERNATIVE) [pathStationsList addObject:s.altText.string];
             else [pathStationsList addObject:n1.name];
-            if(sp1 && schedule) {
-                [pathTimesList addObject:[schedule getPointDate:sp1]];
-                [pathDocksList addObject:[NSString stringWithFormat:@"%c", sp1.dock]];
-            }
         } else {
             GraphNode *n2 = [pathMap objectAtIndex:i+1];
             
@@ -2798,20 +2827,12 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
                 if(DrawName == NAME_ALTERNATIVE) [pathStationsList addObject:s.altText.string];
                 else [pathStationsList addObject:n1.name];
                 if([as isKindOfClass:[Transfer class]]) [pathStationsList addObject:@"---"]; //временно до обновления модели
-                if(sp1 && schedule) {
-                    [pathTimesList addObject:[schedule getPointDate:sp1]];
-                    [pathDocksList addObject:[NSString stringWithFormat:@"%c", sp1.dock]];
-                }
-            } else 
+            } else
             if(n1.line != n2.line) {
                 [activePath addObject:s.transfer];
                 if(DrawName == NAME_ALTERNATIVE) [pathStationsList addObject:s.altText.string];
                 else [pathStationsList addObject:n1.name];
                 [pathStationsList addObject:@"---"]; //временно до обновления модели
-                if(sp1 && schedule) {
-                    [pathTimesList addObject:[schedule getPointDate:sp1]];
-                    [pathDocksList addObject:[NSString stringWithFormat:@"%c", sp1.dock]];
-                }
             }
         }
         prevStation = s;
@@ -2820,10 +2841,6 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         [activePath removeLastObject];
         [pathStationsList removeLastObject];
         [pathStationsList removeLastObject];
-        if(schedule) {
-            [pathTimesList removeLastObject];
-            [pathDocksList removeLastObject];
-        }
     }
     float offset = (25 - (int)[pathStationsList count]) * 0.005f;
     if(offset < 0.02f) offset = 0.02f;
@@ -2941,7 +2958,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
                 r.size.width = r.size.height = l.shortColorCode;
                 if(s.active && path) {
                     NSMutableDictionary *piece = [NSMutableDictionary dictionary];
-                    [piece setValue:[NSValue valueWithCGRect:r] forKey:@"coordinate"];
+                    [piece setValue:[NSValue valueWithRect:r] forKey:@"coordinate"];
                     [piece setValue:s.name forKey:@"name"];
                     [piece setValue:[NSNumber numberWithInt:s.line.pinColor] forKey:@"pinColor"];
                     int activeSegments = 0;
@@ -2969,7 +2986,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     NSMutableArray *path = [[NSMutableArray alloc] init];
     
     [path removeAllObjects];
-	int count_ = [pathMap count];
+	NSInteger count_ = [pathMap count];
     
     Station *prevStation = nil;
 	for (int i=0; i< count_; i++) {
@@ -3002,17 +3019,13 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     return path;
 }
 
+-(Line*)lineByName:(NSString*)lineName
+{
+    for (Line *l in mapLines) {
+        if([l.name isEqualToString:lineName]) return l;
+    }
+    return nil;
+}
+
 
 @end
-
-CGFloat FindTransferTime(int line1, NSString* station1, int line2, NSString* station2)
-{
-    tubeAppDelegate *appDelegate = 	(tubeAppDelegate *)[[UIApplication sharedApplication] delegate];
-    NSMutableArray *stations = [[appDelegate.cityMap.mapLines objectAtIndex:line1-1] stations];
-    for (Station *s in stations) {
-        if([s.name isEqualToString:station1] && s.transfer != nil) {
-            return s.transfer.time;
-        }
-    }
-    return 0;
-}

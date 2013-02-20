@@ -27,6 +27,7 @@
 @synthesize vcontroller;
 @synthesize foundPaths;
 @synthesize nearestStation;
+@synthesize nearestStationName = nearestStationName;
 
 + (Class)layerClass
 {
@@ -174,7 +175,7 @@
     if(s != nil) {
         selectedStationLine = s.line.index;
 		stationSelected=true;
-        Line *l = [cityMap.mapLines objectAtIndex:selectedStationLine-1];
+        //Line *l = [cityMap.mapLines objectAtIndex:selectedStationLine-1];
     } else {
         stationSelected=false;
     }
