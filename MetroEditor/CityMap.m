@@ -454,7 +454,67 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         CGContextDrawLayerInRect(context, rect, predrawedText);
         CGContextRestoreGState(context);
     } else {
-        // TODO
+        NSMutableDictionary *heights = [[NSMutableDictionary alloc] initWithCapacity:[words count]];
+        NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:font, NSFontAttributeName, [NSColor blackColor], NSForegroundColorAttributeName, [NSColor clearColor], NSBackgroundColorAttributeName, nil];
+        CGSize size = CGSizeZero;
+        for (NSString *w in words) {
+            CGRect s = [w boundingRectWithSize:rect.size options:0 attributes:attributes];
+            size.height += s.size.height;
+            if(s.size.width > size.width) size.width = s.size.width;
+            [heights setValue:[NSNumber numberWithInt:s.size.height] forKey:w];
+        }
+        CGContextSaveGState(context);
+        //CGContextScaleCTM(context, scale, scale);
+        int alignment = kCTTextAlignmentCenter;
+        if(align & 0x4) alignment = kCTTextAlignmentLeft;
+        else if(align & 0x8) alignment = kCTTextAlignmentRight;
+        CGRect r = CGRectZero;
+        r.size = size;
+        for (NSString *w in words) {
+            //[w drawWithRect:r options:0 attributes:attributes];
+            int height = [[heights valueForKey:w] intValue];
+            r.origin.y += height;
+            r.size.height -= height;
+        }
+        switch (align & 0x3) {
+            case 0x0:
+                base.y = rect.origin.y + rect.size.height/2;
+                offset.y = -size.height/2;
+                break;
+            case 0x1:
+                base.y = rect.origin.y;
+                offset.y = 0;
+                break;
+            case 0x2:
+                base.y = rect.origin.y + rect.size.height;
+                offset.y = -size.height;
+                break;
+        }
+        switch (align & 0xc) {
+            case 0x0:
+                base.x = rect.origin.x + rect.size.width/2;
+                offset.x = -size.width/2;
+                break;
+            case 0x4:
+                base.x = rect.origin.x;
+                offset.x = 0;
+                break;
+            case 0x8:
+                base.x = rect.origin.x + rect.size.width;
+                offset.x = -size.width;
+                break;
+        }
+        r.size = size;
+        r.origin = offset;
+        CGContextTranslateCTM(context, base.x, base.y);
+        CGContextRotateCTM(context, angle);
+        for (NSString *w in words) {
+            [w drawWithRect:r options:0 attributes:attributes];
+            int height = [[heights valueForKey:w] intValue];
+            r.origin.y += height;
+            r.size.height -= height;
+        }
+        CGContextRestoreGState(context);
     }
 }
 
@@ -624,7 +684,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
             CGPoint p1 = st.pos;
             CGFloat components[4];
             [st.line.color getComponents:components];
-            CGContextSetFillColor(context, components);
+            CGContextSetRGBFillColor(context, *components, *(components+1), *(components+2), *(components+3));
             drawFilledCircle(context, p1.x, p1.y, map->LineWidth/2);
         }
     }
@@ -659,7 +719,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         CGPoint p1 = st.pos;
         CGFloat components[4];
         [st.line.color getComponents:components];
-        CGContextSetFillColor(context, components);
+        CGContextSetRGBFillColor(context, *components, *(components+1), *(components+2), *(components+3));
         drawFilledCircle(context, p1.x, p1.y, map->LineWidth/2);
     }
 }
@@ -1532,7 +1592,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     // all line is active
     CGFloat components[4];
     [_color getComponents:components];
-    CGContextSetStrokeColor(context, components);
+    CGContextSetRGBStrokeColor(context, *components, *(components+1), *(components+2), *(components+3));
     //CGContextSetFillColorWithColor(context, [_color CGColor]);
     CGContextSetLineWidth(context, map->LineWidth);
     for (Station *s in stations) {
@@ -1542,8 +1602,12 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         if(s.transfer == nil && CGRectIntersectsRect(rect, s.boundingBox)) {
             if(map->StKind == LIKE_LONDON || map->StKind == LIKE_HAMBURG)
                 [s drawStation:context];
-            else
-                CGContextDrawLayerInRect(context, s.boundingBox, stationLayer);
+            else {
+                //CGContextDrawLayerInRect(context, s.boundingBox, stationLayer);
+                CGContextSaveGState(context);
+                [self drawNormalStationMark:context rect:s.boundingBox];
+                CGContextRestoreGState(context);
+            }
         }
     }
 }
@@ -1552,7 +1616,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 {
     CGFloat components[4];
     [_color getComponents:components];
-    CGContextSetStrokeColor(context, components);
+    CGContextSetRGBStrokeColor(context, *components, *(components+1), *(components+2), *(components+3));
     CGContextSetLineWidth(context, map->LineWidth);
     for (Station *s in stations) {
         for (Segment *seg in s.segment) {
@@ -1744,73 +1808,85 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     return nil;
 }
 
+-(void)drawNormalStationMark:(CGContextRef)ctx rect:(CGRect)rect
+{
+    switch(map->StKind) {
+        case LIKE_MOSCOW: {
+            CGContextSetRGBFillColor(ctx, 0, 0, 0, 1.0);
+            CGContextFillEllipseInRect(ctx, rect);
+            CGFloat components[4];
+            [_color getComponents:components];
+            CGContextSetRGBFillColor(ctx, *components, *(components+1), *(components+2), *(components+3));
+            drawFilledCircle(ctx, rect.origin.x+rect.size.width/2, rect.origin.y+rect.size.height/2, rect.size.width/2-map->PredrawScale/2);
+        }
+            break;
+        case LIKE_PARIS: {
+            CGFloat components[4];
+            [_color getComponents:components];
+            CGContextSetRGBFillColor(ctx, *components, *(components+1), *(components+2), *(components+3));
+            drawFilledCircle(ctx, rect.origin.x+rect.size.width/2, rect.origin.y+rect.size.height/2, rect.size.width/2);
+        }
+            break;
+        case LIKE_LONDON:
+        case LIKE_HAMBURG:
+        case LIKE_VENICE:
+            break;
+        case DONT_DRAW:
+        case KINDS_NUM:
+            break;
+    }
+}
+
+-(void)drawDisabledStationMark:(CGContextRef)ctx
+{
+    CGFloat ssize = map->StationDiameter*map->PredrawScale;
+    CGFloat hsize = ssize/2;
+    switch(map->StKind) {
+        case LIKE_MOSCOW: {
+            CGContextSetRGBFillColor(ctx, 0, 0, 0, 1.0);
+            CGContextFillEllipseInRect(ctx, CGRectMake(0, 0, ssize, ssize));
+            CGFloat components[4];
+            [_disabledColor getComponents:components];
+            CGContextSetRGBFillColor(ctx, *components, *(components+1), *(components+2), *(components+3));
+            drawFilledCircle(ctx, hsize, hsize, hsize-map->PredrawScale/2);
+        }
+            break;
+        case LIKE_PARIS: {
+            CGFloat components[4];
+            [_disabledColor getComponents:components];
+            CGContextSetRGBFillColor(ctx, *components, *(components+1), *(components+2), *(components+3));
+            drawFilledCircle(ctx, hsize, hsize, hsize);
+        }
+            break;
+        case LIKE_LONDON:
+        case LIKE_HAMBURG:
+        case LIKE_VENICE:
+            break;
+        case DONT_DRAW:
+        case KINDS_NUM:
+            break;
+    }
+}
+
 -(void)predraw:(CGContextRef)context
 {
+    CGFloat ssize = map->StationDiameter*map->PredrawScale;
+    CGFloat hsize = ssize/2;
     for (Station *s in stations) {
         [s predraw:context];
     }
     if(map->StKind == LIKE_LONDON || map->StKind == LIKE_HAMBURG || map->StKind == LIKE_VENICE) return;
     if(stationLayer != nil) CGLayerRelease(stationLayer);
     // make predrawed staion point
-    CGFloat ssize = map->StationDiameter*map->PredrawScale;
-    CGFloat hsize = ssize/2;
     stationLayer = CGLayerCreateWithContext(context, CGSizeMake(ssize, ssize), NULL);
     CGContextRef ctx = CGLayerGetContext(stationLayer);
-    switch(map->StKind) {
-        case LIKE_MOSCOW: {
-            CGContextSetRGBFillColor(ctx, 0, 0, 0, 1.0);
-            CGContextFillEllipseInRect(ctx, CGRectMake(0, 0, ssize, ssize));
-            CGFloat compnents[4];
-            [_color getComponents:compnents];
-            CGContextSetFillColor(ctx, compnents);
-            drawFilledCircle(ctx, hsize, hsize, hsize-map->PredrawScale/2);
-        }
-            break;
-        case LIKE_PARIS: {
-            CGFloat components[4];
-            [_color getComponents:components];
-            CGContextSetFillColor(ctx, components);
-            drawFilledCircle(ctx, hsize, hsize, hsize);
-        }
-            break;
-        case LIKE_LONDON:
-        case LIKE_HAMBURG:
-        case LIKE_VENICE:
-            break;
-        case DONT_DRAW:
-        case KINDS_NUM:
-            break;
-    }
+    [self drawNormalStationMark:ctx rect:CGRectMake(0, 0, ssize, ssize)];
 
     if(disabledStationLayer != nil) CGLayerRelease(disabledStationLayer);
     // make predrawed staion point
     disabledStationLayer = CGLayerCreateWithContext(context, CGSizeMake(ssize, ssize), NULL);
     ctx = CGLayerGetContext(disabledStationLayer);
-    switch(map->StKind) {
-        case LIKE_MOSCOW: {
-            CGContextSetRGBFillColor(ctx, 0, 0, 0, 1.0);
-            CGContextFillEllipseInRect(ctx, CGRectMake(0, 0, ssize, ssize));
-            CGFloat components[4];
-            [_disabledColor getComponents:components];
-            CGContextSetFillColor(ctx, components);
-            drawFilledCircle(ctx, hsize, hsize, hsize-map->PredrawScale/2);
-        }
-            break;
-        case LIKE_PARIS: {
-            CGFloat components[4];
-            [_disabledColor getComponents:components];
-            CGContextSetFillColor(ctx, components);
-            drawFilledCircle(ctx, hsize, hsize, hsize);
-        }
-            break;
-        case LIKE_LONDON:
-        case LIKE_HAMBURG:
-        case LIKE_VENICE:
-            break;
-        case DONT_DRAW:
-        case KINDS_NUM:
-            break;
-    }
+    [self drawDisabledStationMark:ctx];
 }
 
 -(void)calcStations
@@ -2516,13 +2592,13 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     
 
     // predraw transfers
-    for (Transfer *t in transfers) {
-        [t predraw:context];
-    };
+    //for (Transfer *t in transfers) {
+    //    [t predraw:context];
+    //};
     // predraw lines & stations
-    for (Line *l in mapLines) {
-        [l predraw:context];
-    }
+    //for (Line *l in mapLines) {
+    //    [l predraw:context];
+    //}
     CGContextRelease(context);
 }
 

@@ -72,7 +72,6 @@
         MaxScale = 4.f;
         Scale = 2.f;
         selectedStationName = [[NSMutableString alloc] init];
-		
     }
     return self;
 }
@@ -115,7 +114,10 @@
 
     CGContextSaveGState(context);
     CGRect r = CGContextGetClipBoundingBox(context);
-	CGContextSetFillColorWithColor(context, CGColorCreateGenericRGB(1.f, 1.f, 1.f, 1.f));
+    CGFloat components[4];
+    [self.backgroundColor getComponents:components];
+	//CGContextSetFillColorWithColor(context, CGColorCreateGenericRGB(1.f, 1.f, 1.f, 1.f));
+    CGContextSetRGBFillColor(context, *components, *(components+1), *(components+2), *(components+3));
 	CGContextFillRect(context, r);
 
 #ifdef AGRESSIVE_CACHE
@@ -176,6 +178,7 @@
         selectedStationLine = s.line.index;
 		stationSelected=true;
         //Line *l = [cityMap.mapLines objectAtIndex:selectedStationLine-1];
+        NSLog(@"station: %@", s.name);
     } else {
         stationSelected=false;
     }
@@ -183,6 +186,24 @@
 
 -(void)adjustMap
 {
+}
+
+-(void)mouseDown:(NSEvent *)theEvent
+{
+    NSPoint loc = [self convertPoint:theEvent.locationInWindow fromView:nil];
+    NSLog(@"loc point x:%lf y:%lf", loc.x, loc.y);
+    CGPoint p = CGPointMake(loc.x, loc.y);
+    [self selectStationAt:&p];
+}
+
+-(void)mouseDragged:(NSEvent *)theEvent
+{
+    
+}
+
+-(void)mouseUp:(NSEvent *)theEvent
+{
+    
 }
 
 @end
