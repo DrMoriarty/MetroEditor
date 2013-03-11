@@ -87,4 +87,28 @@
     mapScale = scale;
 }
 
+-(IBAction)stationNameChanged:(id)sender
+{
+    if(selectedStation) {
+        [selectedStation setNameSource:[_textField stringValue]];
+        [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+-(IBAction)lineColorChanged:(id)sender
+{
+    if(selectedStation) {
+        [selectedStation.line setColor:[_colorWell color]];
+        [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+-(void)selectStation:(Station *)st
+{
+    [_textField setStringValue:st.nameSource];
+    [_colorWell setColor:st.line.color];
+    selectedStation = st;
+    [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+}
+
 @end

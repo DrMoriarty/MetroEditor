@@ -43,6 +43,9 @@ extern int const imagesCount;
     VectorLayer *vectorLayer;
     VectorLayer *vectorLayer2;
     Station *nearestStation;
+    NSMutableSet *selectedStations;
+    BOOL makeSelection;
+    Station *currentStation;
 }
 
 @property (weak) NSString *nearestStationName;

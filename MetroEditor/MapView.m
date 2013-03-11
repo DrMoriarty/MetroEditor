@@ -13,6 +13,7 @@
 #import "MyTiledLayer.h"
 //#import "Schedule.h"
 //#import "ManagedObjects.h"
+#import "MEWindow.h"
 
 @implementation MapView
 @synthesize cityMap;
@@ -60,6 +61,20 @@
     }
 }
 
+-(id)initWithCoder:(NSCoder *)aDecoder
+{
+    if((self = [super initWithCoder:aDecoder])) {
+		//близжайщней станции пока нет
+		nearestStationName = @"";
+        MinScale = 0.25f;
+        MaxScale = 4.f;
+        Scale = 2.f;
+        selectedStationName = [[NSMutableString alloc] init];
+        selectedStations = [[NSMutableSet alloc] init];
+    }
+    return self;
+}
+
 - (id)initWithFrame:(CGRect)frame {
     if (self = [super initWithFrame:frame]) {
         // Initialization code
@@ -72,6 +87,7 @@
         MaxScale = 4.f;
         Scale = 2.f;
         selectedStationName = [[NSMutableString alloc] init];
+        selectedStations = [[NSMutableSet alloc] init];
     }
     return self;
 }
@@ -144,7 +160,12 @@
     [cityMap drawMap:ctx inRect:r];
     [cityMap drawTransfers:ctx inRect:r];
     if(vectorLayer2) [vectorLayer2 draw:context inRect:r];
-    [cityMap drawStations:ctx inRect:r]; 
+    [cityMap drawStations:ctx inRect:r];
+    if([selectedStations count] > 0) {
+        CGContextSetRGBFillColor(context, 1.0, 1.0, 1.0, 0.5);
+        CGContextFillRect(context, r);
+        [cityMap drawActive:context inRect:r];
+    }
 
 #ifdef AGRESSIVE_CACHE
     CGContextTranslateCTM(context, r.origin.x, r.origin.y);
@@ -171,17 +192,18 @@
     [s drawInRect:textRect withAttributes:attributes];
 }
 
--(void)selectStationAt:(CGPoint*)currentPosition
+-(Station*)selectStationAt:(CGPoint*)currentPosition
 {
     Station *s = [cityMap checkPoint:currentPosition Station:selectedStationName];
     if(s != nil) {
         selectedStationLine = s.line.index;
 		stationSelected=true;
         //Line *l = [cityMap.mapLines objectAtIndex:selectedStationLine-1];
-        NSLog(@"station: %@", s.name);
+        return s;
     } else {
         stationSelected=false;
     }
+    return nil;
 }
 
 -(void)adjustMap
@@ -191,19 +213,45 @@
 -(void)mouseDown:(NSEvent *)theEvent
 {
     NSPoint loc = [self convertPoint:theEvent.locationInWindow fromView:nil];
-    NSLog(@"loc point x:%lf y:%lf", loc.x, loc.y);
     CGPoint p = CGPointMake(loc.x, loc.y);
-    [self selectStationAt:&p];
+    Station *s = [self selectStationAt:&p];
+    NSLog(@"station: %@", s.name);
+    makeSelection = YES;
+    currentStation = s;
 }
 
 -(void)mouseDragged:(NSEvent *)theEvent
 {
-    
+    makeSelection = NO;
+    CGPoint delta = CGPointMake(theEvent.deltaX, -theEvent.deltaY);
+    if([selectedStations count] > 0) {
+        for (Station *s in selectedStations) {
+            [s moveBy:delta];
+        }
+        [self setNeedsDisplayInRect:[self visibleRect]];
+    }
 }
 
 -(void)mouseUp:(NSEvent *)theEvent
 {
-    
+    if(makeSelection && currentStation != nil) {
+        if(currentStation.active) {
+            if([selectedStations count] > 0) {
+                currentStation.active = NO;
+                [selectedStations removeObject:currentStation];
+            } else {
+                [cityMap resetMap:NO];
+                currentStation.active = YES;
+                [selectedStations addObject:currentStation];
+            }
+        } else {
+            currentStation.active = YES;
+            [selectedStations addObject:currentStation];
+        }
+        [(MEWindow*)self.window selectStation:currentStation];
+    }
+    makeSelection = NO;
+    currentStation = nil;
 }
 
 @end

@@ -27,7 +27,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 
 @interface ComplexText : NSObject {
 @private
-    NSString *string;
+    NSString *string, *source;
     float angle;
     int align;
     NSFont *font;
@@ -39,6 +39,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 }
 @property (nonatomic, readonly) NSString* string;
 @property (nonatomic, readonly) CGRect boundingBox;
+@property (nonatomic, readonly) NSString* source;
 
 +(NSString*) makePlainString:(NSString*)_str;
 -(id) initWithString:(NSString*)string font:(NSFont*)font andRect:(CGRect)rect;
@@ -46,6 +47,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(id) initWithBothString:(NSString*)string font:(NSFont*)font andRect:(CGRect)rect;
 -(void) predraw:(CGContextRef)context scale:(CGFloat)scale;
 -(void) draw:(CGContextRef)context;
+-(void) moveBy:(CGPoint)delta;
 @end
 
 @interface Transfer : NSObject {
@@ -144,6 +146,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 @property (nonatomic, readonly) NSMutableArray* firstStations;
 @property (nonatomic, readonly) NSMutableArray* lastStations;
 @property (nonatomic, readonly) ComplexText* altText;
+@property (nonatomic, weak) NSString* nameSource;
 
 -(id) initWithMap:(CityMap*)cityMap name:(NSString*)sname pos:(CGPoint)p index:(int)i rect:(CGRect)r andDriving:(NSString*)dr;
 -(BOOL) addSibling:(Station*)st;
@@ -164,6 +167,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(BOOL) checkForwardWay:(Station *)st;
 -(int) megaTransferWayFrom:(Station *)prevStation to:(Station*) transferStation;
 -(int) megaTransferWayFrom:(Station *)prevStation to:(Station*) transferStation andNextStation:(Station *) nextStation;
+-(void) moveBy:(CGPoint)delta;
 @end
 
 @interface TangentPoint : NSObject {
@@ -333,7 +337,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void) drawActive:(CGContextRef) context inRect:(CGRect)rect;
 
 -(void) activatePath:(NSArray*)pathMap;
--(void) resetPath;
+-(void) resetMap:(BOOL)enable;
 -(Station*) findNearestStationTo:(CGPoint)gpsCoord;
 -(CGRect)getGeoCoordsForRect:(CGRect)rect coordinates:(NSMutableArray*)date;
 

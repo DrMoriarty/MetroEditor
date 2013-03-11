@@ -93,6 +93,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 @synthesize string;
 @synthesize boundingBox;
+@synthesize source;
 
 +(NSString*) makePlainString:(NSString*)_str
 {
@@ -127,6 +128,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         angle = 0;
         align = 0;
         string = _string;
+        source = [_string copy];
         font = _font;
         rect = _rect;
         while (true) {
@@ -216,6 +218,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         angle = 0;
         align = 0;
         string = _string;
+        source = [_string copy];
         font = _font;
         rect = _rect;
         while (true) {
@@ -305,6 +308,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         angle = 0;
         align = 0;
         string = _string;
+        source = [_string copy];
         font = _font;
         rect = _rect;
         while (true) {
@@ -508,14 +512,26 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         r.origin = offset;
         CGContextTranslateCTM(context, base.x, base.y);
         CGContextRotateCTM(context, angle);
+        r.origin.y += r.size.height;
+        r.size.height = 0;
         for (NSString *w in words) {
-            [w drawWithRect:r options:0 attributes:attributes];
             int height = [[heights valueForKey:w] intValue];
-            r.origin.y += height;
-            r.size.height -= height;
+            r.origin.y -= height;
+            r.size.height += height;
+            [w drawWithRect:r options:0 attributes:attributes];
         }
         CGContextRestoreGState(context);
     }
+}
+
+-(void)moveBy:(CGPoint)delta
+{
+    rect.origin.x += delta.x;
+    rect.origin.y += delta.y;
+    boundingBox.origin.x += delta.x;
+    boundingBox.origin.y += delta.y;
+    base.x += delta.x;
+    base.y += delta.y;
 }
 
 -(void)dealloc
@@ -913,6 +929,26 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     return [NSString stringWithFormat:@"Station '%@' at line '%@'", name, line.name];
 }
 
+-(NSString*)nameSource
+{
+    return text.source;
+}
+
+-(void)setNameSource:(NSString *)nameSource
+{
+    //NSUInteger br = [nameSource rangeOfString:@"("].location;
+    NSUInteger alternative = [nameSource rangeOfString:@"&"].location;
+    if(alternative != NSNotFound) {
+        altText = [[ComplexText alloc] initWithAlternativeString:nameSource font:[NSFont fontWithName:map->TEXT_FONT size:map->FontSize] andRect:textRect];
+        bothText = [[ComplexText alloc] initWithBothString:nameSource font:[NSFont fontWithName:map->TEXT_FONT size:map->FontSize] andRect:textRect];
+    }
+    //if(br == NSNotFound) {
+        text = [[ComplexText alloc] initWithString:nameSource font:[NSFont fontWithName:map->TEXT_FONT size:map->FontSize] andRect:textRect];
+        name = text.string;
+        tapTextArea = text.boundingBox;
+    //}
+}
+
 -(BOOL) terminal { return links == 1; }
 
 -(void) setPos:(CGPoint)_pos
@@ -1226,6 +1262,23 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     [transferDriving removeAllObjects];
     [firstStations removeAllObjects];
     [lastStations removeAllObjects];
+}
+
+-(void) moveBy:(CGPoint)delta
+{
+    pos.x += delta.x;
+    pos.y += delta.y;
+    boundingBox.origin.x += delta.x;
+    boundingBox.origin.y += delta.y;
+    textRect.origin.x += delta.x;
+    textRect.origin.y += delta.y;
+    tapArea.origin.x += delta.x;
+    tapArea.origin.y += delta.y;
+    tapTextArea.origin.x += delta.x;
+    tapTextArea.origin.y += delta.y;
+    [text moveBy:delta];
+    [altText moveBy:delta];
+    [bothText moveBy:delta];
 }
 
 @end
@@ -1636,8 +1689,12 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         if(s.active && s.transfer == nil && CGRectIntersectsRect(rect, s.boundingBox)) {
             if(map->StKind == LIKE_LONDON || map->StKind == LIKE_HAMBURG)
                 [s drawStation:context];
-            else
-                CGContextDrawLayerInRect(context, s.boundingBox, stationLayer);
+            else {
+                //CGContextDrawLayerInRect(context, s.boundingBox, stationLayer);
+                CGContextSaveGState(context);
+                [self drawNormalStationMark:context rect:s.boundingBox];
+                CGContextRestoreGState(context);
+            }
         }
     }
 }
@@ -2952,13 +3009,13 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 #endif
 }
 
--(void) resetPath
+-(void) resetMap:(BOOL)enable
 {
     for (Line *l in mapLines) {
-        [l setEnabled:YES];
+        [l setEnabled:enable];
     }
     for (Transfer *t in transfers) {
-        t.active = YES;
+        t.active = enable;
     }
     activeExtent = CGRectNull;
     [activePath removeAllObjects];
