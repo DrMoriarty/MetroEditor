@@ -13,6 +13,7 @@ NSMutableArray * Split(NSString* s);
 //CG Helpers	
 void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r);
 void drawLine(CGContextRef context, CGFloat x1, CGFloat y1, CGFloat x2, CGFloat y2, int lineWidth);
+void drawSelectionRect(CGContextRef context, CGRect rect);
 
 // visual type of stations & transfers
 typedef enum {DONT_DRAW=0, LIKE_PARIS=1, LIKE_LONDON=2, LIKE_MOSCOW=3, LIKE_HAMBURG=4, LIKE_VENICE=5, KINDS_NUM} StationKind;
@@ -152,7 +153,8 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(BOOL) addSibling:(Station*)st;
 -(void) drawName:(CGContextRef)context;
 -(void) drawStation:(CGContextRef)context;
--(void) draw:(CGContextRef)context inRect:(CGRect)rect;
+-(void) drawSegments:(CGContextRef)context inRect:(CGRect)rect;
+-(void) drawSelection:(CGContextRef)context;
 -(void) makeSegments;
 -(void) makeTangent;
 -(void) predraw:(CGContextRef)context;
@@ -168,6 +170,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(int) megaTransferWayFrom:(Station *)prevStation to:(Station*) transferStation;
 -(int) megaTransferWayFrom:(Station *)prevStation to:(Station*) transferStation andNextStation:(Station *) nextStation;
 -(void) moveBy:(CGPoint)delta;
+-(void) moveTextBy:(CGPoint)delta;
 @end
 
 @interface TangentPoint : NSObject {
@@ -189,7 +192,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     Station *start;
     Station *end;
     int driving;
-    NSMutableArray* splinePoints;
+    NSMutableArray* linePoints, *splinePoints;
     CGRect boundingBox;
     BOOL active, isSpline;
     CGMutablePathRef path;
@@ -199,16 +202,18 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 @property (nonatomic, readonly) int driving;
 @property (nonatomic, readonly) CGRect boundingBox;
 @property (nonatomic, assign) BOOL active;
+@property (nonatomic, readonly) NSArray *linePoints;
 @property (nonatomic, readonly) NSArray *splinePoints;
 @property (nonatomic, assign) BOOL isSpline;
 
 -(id)initFromStation:(Station*)from toStation:(Station*)to withDriving:(int)dr;
 -(void)appendPoint:(CGPoint)p;
--(void)calcSpline;
+-(void)prepare;
 -(void)draw:(CGContextRef)context;
 -(void)predraw;
 -(void)predrawSpline;
 -(void)predrawMultiline;
+-(void)movePoint:(int)index by:(CGPoint)delta;
 @end
 
 @interface Line : NSObject {
@@ -248,6 +253,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(Segment*)activatePathFrom:(NSString*)station1 to:(NSString*)station2;
 -(void)setEnabled:(BOOL)en;
 -(void)predraw:(CGContextRef)context;
+-(void)updateBoundingBox;
 @end
 
 @interface CityMap : NSObject {
@@ -322,7 +328,9 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 //graph func
 -(NSDictionary*) calcPath :(NSString*) firstStation :(NSString*) secondStation :(NSInteger) firstStationLineNum :(NSInteger)secondStationLineNum ;
 
--(Station*) checkPoint:(CGPoint*)point Station:(NSMutableString*)stationName;
+-(Station*) checkPoint:(CGPoint*)point Station:(NSMutableString*)stationName selectText:(BOOL*)text;
+-(Segment*) checkPoint:(CGPoint*)point segmentPoint:(int*)pIndex;
+-(NSArray*) checkRect:(CGRect)rect;
 	
 // load stuff 
 -(void) processTransfers:(NSString*)transferInfo;
@@ -342,4 +350,5 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(CGRect)getGeoCoordsForRect:(CGRect)rect coordinates:(NSMutableArray*)date;
 
 -(NSMutableArray*) describePath:(NSArray*)pathMap;
+-(void)updateBoundingBox;
 @end

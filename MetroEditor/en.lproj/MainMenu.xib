@@ -1427,7 +1427,7 @@
 												<reference key="NSControlView" ref="1000350973"/>
 												<double key="NSMaxValue">100</double>
 												<double key="NSMinValue">1</double>
-												<double key="NSValue">50</double>
+												<double key="NSValue">100</double>
 												<double key="NSAltIncValue">0.0</double>
 												<int key="NSNumberOfTickMarks">0</int>
 												<int key="NSTickMarkPosition">1</int>
@@ -2508,6 +2508,22 @@
 						<reference key="destination" ref="4263194"/>
 					</object>
 					<int key="connectionID">709</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">alignHorizontal:</string>
+						<reference key="source" ref="972006081"/>
+						<reference key="destination" ref="95358796"/>
+					</object>
+					<int key="connectionID">710</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">alignVertical:</string>
+						<reference key="source" ref="972006081"/>
+						<reference key="destination" ref="989875607"/>
+					</object>
+					<int key="connectionID">711</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBActionConnection" key="connection">
@@ -4705,7 +4721,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">709</int>
+			<int key="maxID">711</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -4751,26 +4767,16 @@
 					<string key="className">MEWindow</string>
 					<string key="superclassName">NSWindow</string>
 					<dictionary class="NSMutableDictionary" key="actions">
-						<string key="lineColorChanged:">id</string>
 						<string key="openDocument:">id</string>
 						<string key="scaleChanged:">id</string>
-						<string key="stationNameChanged:">id</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="actionInfosByName">
-						<object class="IBActionInfo" key="lineColorChanged:">
-							<string key="name">lineColorChanged:</string>
-							<string key="candidateClassName">id</string>
-						</object>
 						<object class="IBActionInfo" key="openDocument:">
 							<string key="name">openDocument:</string>
 							<string key="candidateClassName">id</string>
 						</object>
 						<object class="IBActionInfo" key="scaleChanged:">
 							<string key="name">scaleChanged:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-						<object class="IBActionInfo" key="stationNameChanged:">
-							<string key="name">stationNameChanged:</string>
 							<string key="candidateClassName">id</string>
 						</object>
 					</dictionary>

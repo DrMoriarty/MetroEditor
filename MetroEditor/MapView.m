@@ -68,7 +68,7 @@
 		nearestStationName = @"";
         MinScale = 0.25f;
         MaxScale = 4.f;
-        Scale = 2.f;
+        Scale = 1.f;
         selectedStationName = [[NSMutableString alloc] init];
         selectedStations = [[NSMutableSet alloc] init];
     }
@@ -79,13 +79,12 @@
     if (self = [super initWithFrame:frame]) {
         // Initialization code
         visualFrame = frame;
-        for(int i=0; i<MAXCACHE; i++) cacheLayer[i] = nil;
 
 		//близжайщней станции пока нет
 		nearestStationName = @"";
         MinScale = 0.25f;
         MaxScale = 4.f;
-        Scale = 2.f;
+        Scale = 1.f;
         selectedStationName = [[NSMutableString alloc] init];
         selectedStations = [[NSMutableSet alloc] init];
     }
@@ -98,7 +97,7 @@
     self.frame = CGRectMake(0, 0, cityMap.w, cityMap.h);
     MinScale = MIN( (float)visualFrame.size.width / cityMap.size.width, (float)visualFrame.size.height / cityMap.size.height);
     MaxScale = cityMap.maxScale;
-    Scale = MinScale * 2.f;
+    Scale = 1.f;//MinScale * 2.f;
 
     if(cityMap.backgroundImageFile != nil) {
         if(vectorLayer != nil) [vectorLayer loadFrom:cityMap.backgroundImageFile directory:cityMap.thisMapName];
@@ -122,8 +121,6 @@
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    
-    for(int i=0; i<MAXCACHE; i++) CGLayerRelease(cacheLayer[i]);
 }
 
 - (void)drawLayer:(CALayer *)layer inContext:(CGContextRef)context {
@@ -136,20 +133,8 @@
     CGContextSetRGBFillColor(context, *components, *(components+1), *(components+2), *(components+3));
 	CGContextFillRect(context, r);
 
-#ifdef AGRESSIVE_CACHE
-    CGFloat drawScale = 1024.f / MAX(r.size.width, r.size.height);
-    CGFloat presentScale = 1.f/drawScale;
-    int cc = currentCacheLayer;
-    currentCacheLayer++;
-    if(currentCacheLayer >= MAXCACHE) currentCacheLayer = 0;
-    if(cacheLayer[cc] != nil) CGLayerRelease(cacheLayer[cc]);
-    cacheLayer[cc] = CGLayerCreateWithContext(context, CGSizeMake(512, 512), NULL);
-    CGContextRef ctx = CGLayerGetContext(cacheLayer[cc]);
-    CGContextScaleCTM(ctx, drawScale, drawScale);
-    CGContextTranslateCTM(ctx, -r.origin.x, -r.origin.y);
-#else
     CGContextRef ctx = context;
-#endif
+
     CGContextSetInterpolationQuality(ctx, kCGInterpolationNone);
     CGContextSetShouldAntialias(ctx, true);
     CGContextSetShouldSmoothFonts(ctx, false);
@@ -161,17 +146,10 @@
     [cityMap drawTransfers:ctx inRect:r];
     if(vectorLayer2) [vectorLayer2 draw:context inRect:r];
     [cityMap drawStations:ctx inRect:r];
-    if([selectedStations count] > 0) {
-        CGContextSetRGBFillColor(context, 1.0, 1.0, 1.0, 0.5);
-        CGContextFillRect(context, r);
-        [cityMap drawActive:context inRect:r];
+    if(makeSelection == SELECT_MULTI && CGRectIntersectsRect(r, multiSelectRect)) {
+        drawSelectionRect(context, multiSelectRect);
     }
 
-#ifdef AGRESSIVE_CACHE
-    CGContextTranslateCTM(context, r.origin.x, r.origin.y);
-    CGContextScaleCTM(context, presentScale, presentScale);
-    CGContextDrawLayerAtPoint(context, CGPointZero, cacheLayer[cc]);
-#endif
     CGContextRestoreGState(context);
 }
 
@@ -194,7 +172,7 @@
 
 -(Station*)selectStationAt:(CGPoint*)currentPosition
 {
-    Station *s = [cityMap checkPoint:currentPosition Station:selectedStationName];
+    Station *s = [cityMap checkPoint:currentPosition Station:selectedStationName selectText:&selectText];
     if(s != nil) {
         selectedStationLine = s.line.index;
 		stationSelected=true;
@@ -206,7 +184,31 @@
     return nil;
 }
 
+-(Segment*)selectSegmentAt:(CGPoint*)currentPosition
+{
+    Segment *s = [cityMap checkPoint:currentPosition segmentPoint:&currentSegmentPoint];
+    return s;
+}
+
+-(void)selectStationsByRect:(CGRect)r
+{
+    NSArray *a = [cityMap checkRect:r];
+    for (Station *s in a) {
+        s.active = YES;
+    }
+    [selectedStations addObjectsFromArray:a];
+    [(MEWindow*)self.window selectStation:[a lastObject]];
+}
+
 -(void)adjustMap
+{
+}
+
+-(void)keyDown:(NSEvent *)theEvent
+{
+}
+
+-(void)keyUp:(NSEvent *)theEvent
 {
 }
 
@@ -214,44 +216,161 @@
 {
     NSPoint loc = [self convertPoint:theEvent.locationInWindow fromView:nil];
     CGPoint p = CGPointMake(loc.x, loc.y);
-    Station *s = [self selectStationAt:&p];
-    NSLog(@"station: %@", s.name);
-    makeSelection = YES;
-    currentStation = s;
+    currentStation = [self selectStationAt:&p];
+    if(currentStation == nil) {
+        currentSegment = [self selectSegmentAt:&p];
+    } else currentSegment = nil;
+    makeSelection = SELECT_SINGLE;
 }
 
 -(void)mouseDragged:(NSEvent *)theEvent
 {
-    makeSelection = NO;
-    CGPoint delta = CGPointMake(theEvent.deltaX, -theEvent.deltaY);
-    if([selectedStations count] > 0) {
-        for (Station *s in selectedStations) {
-            [s moveBy:delta];
-        }
+    if(makeSelection == SELECT_MULTI) {
+        NSPoint loc = [self convertPoint:theEvent.locationInWindow fromView:nil];
+        multiSelectRect.size = CGSizeMake(loc.x - multiSelectRect.origin.x, loc.y - multiSelectRect.origin.y);
         [self setNeedsDisplayInRect:[self visibleRect]];
+        return;
+    }
+    if(currentSegment != nil) {
+        CGPoint delta = CGPointMake(theEvent.deltaX / Scale, -theEvent.deltaY / Scale);
+        [currentSegment movePoint:currentSegmentPoint by:delta];
+        [self setNeedsDisplayInRect:[self visibleRect]];
+        return;
+    }
+    if([NSEvent modifierFlags] & NSCommandKeyMask) {
+        // zoom view
+        CGFloat factor = -theEvent.deltaY;
+        if(factor > 0) {
+            factor = 1 + factor/100;
+        } else {
+            factor = 1 + factor/200;
+        }
+        MEWindow* w = (MEWindow*)self.window;
+        [w scaleBy:factor];
+        makeSelection = SELECT_NONE;
+    } else {
+        if(currentStation != nil && !currentStation.active) {
+            // activate new station
+            for (Station *s in selectedStations) {
+                s.active = NO;
+            }
+            [selectedStations removeAllObjects];
+            currentStation.active = YES;
+            [selectedStations addObject:currentStation];
+            [(MEWindow*)self.window selectStation:currentStation];
+        } else if(currentStation == nil) {
+            if(!([NSEvent modifierFlags] & NSCommandKeyMask)) {
+                // CMD not pressed
+                for (Station *s in selectedStations) {
+                    s.active = NO;
+                }
+                [selectedStations removeAllObjects];
+            }
+            makeSelection = SELECT_MULTI;
+            NSPoint loc = [self convertPoint:theEvent.locationInWindow fromView:nil];
+            multiSelectRect.origin = CGPointMake(loc.x, loc.y);
+            multiSelectRect.size = CGSizeZero;
+            return;
+        }
+        CGPoint delta = CGPointMake(theEvent.deltaX / Scale, -theEvent.deltaY / Scale);
+        if([selectedStations count] > 0) {
+            for (Station *s in selectedStations) {
+                if(selectText) [s moveTextBy:delta];
+                else [s moveBy:delta];
+            }
+            [self setNeedsDisplayInRect:[self visibleRect]];
+        }
+        makeSelection = SELECT_NONE;
     }
 }
 
 -(void)mouseUp:(NSEvent *)theEvent
 {
-    if(makeSelection && currentStation != nil) {
-        if(currentStation.active) {
-            if([selectedStations count] > 0) {
-                currentStation.active = NO;
-                [selectedStations removeObject:currentStation];
-            } else {
-                [cityMap resetMap:NO];
-                currentStation.active = YES;
-                [selectedStations addObject:currentStation];
+    if(currentSegment) {
+        [currentSegment.start.line updateBoundingBox];
+        [self updateMapSize];
+    } else if(makeSelection == SELECT_SINGLE && currentStation != nil) {
+        if(!([NSEvent modifierFlags] & NSCommandKeyMask)) {
+            // CMD not pressed
+            for (Station *s in selectedStations) {
+                s.active = NO;
             }
-        } else {
+            [selectedStations removeAllObjects];
             currentStation.active = YES;
             [selectedStations addObject:currentStation];
+            [(MEWindow*)self.window selectStation:currentStation];
+        } else {
+            // CMD pressed
+            if(currentStation.active) {
+                currentStation.active = NO;
+                [selectedStations removeObject:currentStation];
+                [(MEWindow*)self.window selectStation:[selectedStations anyObject]];
+            } else {
+                currentStation.active = YES;
+                [selectedStations addObject:currentStation];
+                [(MEWindow*)self.window selectStation:currentStation];
+            }
         }
-        [(MEWindow*)self.window selectStation:currentStation];
+    } else if(makeSelection == SELECT_SINGLE && currentStation == nil && [selectedStations count] > 0) {
+        for (Station *s in selectedStations) {
+            s.active = NO;
+        }
+        [selectedStations removeAllObjects];
+        [(MEWindow*)self.window selectStation:nil];
+    } else if(makeSelection == SELECT_MULTI) {
+        [self selectStationsByRect:multiSelectRect];
+        multiSelectRect = CGRectZero;
+        [self setNeedsDisplayInRect:[self visibleRect]];
+    } else if(makeSelection == SELECT_NONE) {
+        NSMutableSet *lines = [NSMutableSet set];
+        for (Station *s in selectedStations) {
+            [lines addObject:s.line];
+        }
+        for (Line *l in lines) {
+            [l updateBoundingBox];
+        }
+        [self updateMapSize];
     }
-    makeSelection = NO;
+    makeSelection = SELECT_NONE;
     currentStation = nil;
+    currentSegment = nil;
+    currentSegmentPoint = 0;
+}
+
+-(void)alignHorizontal
+{
+    CGPoint center = CGPointZero;
+    for (Station *s in selectedStations) {
+        center.y += s.pos.y;
+    }
+    center.y /= [selectedStations count];
+    for (Station *s in selectedStations) {
+        [s moveBy:CGPointMake(0, center.y-s.pos.y)];
+    }
+    [self setNeedsDisplayInRect:[self visibleRect]];
+}
+
+-(void)alignVertical
+{
+    CGPoint center = CGPointZero;
+    for (Station *s in selectedStations) {
+        center.x += s.pos.x;
+    }
+    center.x /= [selectedStations count];
+    for (Station *s in selectedStations) {
+        [s moveBy:CGPointMake(center.x-s.pos.x, 0)];
+    }
+    [self setNeedsDisplayInRect:[self visibleRect]];
+}
+
+-(void) updateMapSize
+{
+    [cityMap updateBoundingBox];
+    self.frame = CGRectMake(0, 0, cityMap.w, cityMap.h);
+    self.bounds = self.frame;
+    NSScrollView *sv = (NSScrollView*)self.superview;
+    [sv.documentView scaleUnitSquareToSize:NSMakeSize(Scale, Scale)];
+    [sv.documentView setFrameSize: CGSizeMake(cityMap.w * Scale, cityMap.h * Scale) ];
 }
 
 @end

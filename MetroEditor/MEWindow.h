@@ -11,7 +11,6 @@
 #import "CityMap.h"
 
 @interface MEWindow : NSWindow {
-    CGFloat mapScale;
     __weak Station *selectedStation;
 }
 
@@ -24,6 +23,7 @@
 
 - (IBAction)openDocument:(id)sender;
 - (IBAction)scaleChanged:(id)sender;
+-(void)scaleBy:(CGFloat)factor;
 
 -(void)selectStation:(Station*)st;
 @end

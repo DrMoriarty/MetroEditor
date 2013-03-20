@@ -18,10 +18,7 @@ extern int const imagesCount;
 
 @class MainViewController;
 
-// включает дополнительное промежуточное кеширование
-//#define AGRESSIVE_CACHE
-// количество слоёв кеширования
-#define MAXCACHE 8
+enum {SELECT_NONE=0, SELECT_SINGLE, SELECT_MULTI};
 
 @interface MapView : NSView {
 
@@ -37,15 +34,17 @@ extern int const imagesCount;
 	__weak NSString *nearestStationName;
 	//
     CGFloat Scale, MaxScale, MinScale;
-    CGLayerRef cacheLayer[MAXCACHE];
-    int currentCacheLayer;
     // prerendered image
     VectorLayer *vectorLayer;
     VectorLayer *vectorLayer2;
     Station *nearestStation;
     NSMutableSet *selectedStations;
-    BOOL makeSelection;
+    int makeSelection;
     Station *currentStation;
+    Segment *currentSegment;
+    int currentSegmentPoint;
+    CGRect multiSelectRect;
+    BOOL selectText;
 }
 
 @property (weak) NSString *nearestStationName;
@@ -61,7 +60,7 @@ extern int const imagesCount;
 @property (nonatomic, retain) CityMap *cityMap;
 @property (nonatomic, readonly) NSMutableString *selectedStationName;
 @property (nonatomic, readonly) CGSize size;
-@property (nonatomic, readonly) CGFloat Scale;
+@property (nonatomic, assign) CGFloat Scale;
 @property (nonatomic, readonly) CGFloat MaxScale;
 @property (nonatomic, readonly) CGFloat MinScale;
 @property (nonatomic, assign) MainViewController *vcontroller;
@@ -76,5 +75,7 @@ extern int const imagesCount;
 
 // adjust map after resizing parent views
 -(void)adjustMap;
+-(void)alignVertical;
+-(void)alignHorizontal;
 
 @end

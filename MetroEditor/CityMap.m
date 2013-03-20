@@ -89,6 +89,37 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 	CGContextFillEllipseInRect(context, CGRectMake(x-r, y-r, 2*r, 2*r));
 }
 
+void MyDrawPattern (void * info, CGContextRef context)
+{
+    CGContextSetRGBFillColor(context, 1, 1, 1, 1);
+    CGContextFillRect(context, CGRectMake(0, 0, 4, 4));
+    CGContextSetRGBFillColor(context, 0, 0, 0, 1);
+    CGContextFillRect(context, CGRectMake(0, 0, 2, 2));
+    //CGContextSetRGBFillColor(context, 1, 0, 0, 1);
+    CGContextFillRect(context, CGRectMake(2, 2, 2, 2));
+}
+
+CGColorSpaceRef _selectionColorSpace = NULL;
+CGPatternRef _selectionPattern = NULL;
+CGPatternCallbacks _selectionPatternCallbacks = {0, &MyDrawPattern, NULL};
+
+void drawSelectionRect(CGContextRef context, CGRect rect)
+{
+    CGContextSaveGState(context);
+    if(!_selectionPattern) {
+        _selectionColorSpace = CGColorSpaceCreatePattern(NULL);
+        _selectionPattern = CGPatternCreate(NULL, CGRectMake(0, 0, 4, 4), CGAffineTransformIdentity, 4, 4, kCGPatternTilingConstantSpacingMinimalDistortion, true, &_selectionPatternCallbacks);
+        CGColorSpaceRelease(_selectionColorSpace);
+    }
+    CGContextSetStrokeColorSpace(context, _selectionColorSpace);
+    CGContextSetLineWidth(context, 2);
+    CGFloat alpha = 1;
+    CGContextSetStrokePattern(context, _selectionPattern, &alpha);
+    CGContextStrokeRect(context, rect);
+    CGContextRestoreGState(context);
+}
+
+
 @implementation ComplexText
 
 @synthesize string;
@@ -175,10 +206,10 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         if(angle == 0) {
             CGFloat d = rect.size.height * 0.5f;
             boundingBox = rect;
-            boundingBox.origin.x -= d;
-            boundingBox.origin.y -= d;
-            boundingBox.size.width += 2*d;
-            boundingBox.size.height += 2*d;
+            //boundingBox.origin.x -= d;
+            //boundingBox.origin.y -= d;
+            //boundingBox.size.width += 2*d;
+            //boundingBox.size.height += 2*d;
         } else {
             CGPoint rbase = rect.origin;
             switch (align & 0x3) {
@@ -265,10 +296,10 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         if(angle == 0) {
             CGFloat d = rect.size.height * 0.5f;
             boundingBox = rect;
-            boundingBox.origin.x -= d;
-            boundingBox.origin.y -= d;
-            boundingBox.size.width += 2*d;
-            boundingBox.size.height += 2*d;
+            //boundingBox.origin.x -= d;
+            //boundingBox.origin.y -= d;
+            //boundingBox.size.width += 2*d;
+            //boundingBox.size.height += 2*d;
         } else {
             CGPoint rbase = rect.origin;
             switch (align & 0x3) {
@@ -351,10 +382,10 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         if(angle == 0) {
             CGFloat d = rect.size.height * 0.5f;
             boundingBox = rect;
-            boundingBox.origin.x -= d;
-            boundingBox.origin.y -= d;
-            boundingBox.size.width += 2*d;
-            boundingBox.size.height += 2*d;
+            //boundingBox.origin.x -= d;
+            //boundingBox.origin.y -= d;
+            //boundingBox.size.width += 2*d;
+            //boundingBox.size.height += 2*d;
         } else {
             CGPoint rbase = rect.origin;
             switch (align & 0x3) {
@@ -816,6 +847,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
                 NSAssert(NO, @"something went wrong...");
         }
     }
+    for (Station *s in stations) {
+        if(s.active) [s drawSelection:context];
+    }
 }
 
 -(void)predraw:(CGContextRef)context
@@ -1042,7 +1076,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     return YES;
 }
 
--(void) draw:(CGContextRef)context inRect:(CGRect)rect
+-(void) drawSegments:(CGContextRef)context inRect:(CGRect)rect
 {
     for (Segment *s in segment) {
         if(CGRectIntersectsRect(rect, s.boundingBox))
@@ -1064,6 +1098,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
             [bothText draw:context];
             break;
     }
+    if(active) drawSelectionRect(context, tapTextArea);
 }
 
 -(void)drawStation:(CGContextRef)context
@@ -1088,6 +1123,12 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         CGContextStrokePath(context);
         CGContextRestoreGState(context);
     }
+    if(active) [self drawSelection:context];
+}
+
+-(void)drawSelection:(CGContextRef)context
+{
+    drawSelectionRect(context, tapArea);
 }
 
 -(void)predraw:(CGContextRef) context
@@ -1279,6 +1320,23 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     [text moveBy:delta];
     [altText moveBy:delta];
     [bothText moveBy:delta];
+    for (Segment *s in segment) {
+        [s prepare];
+    }
+    for (Segment *s in backSegment) {
+        [s prepare];
+    }
+}
+
+-(void) moveTextBy:(CGPoint)delta
+{
+    textRect.origin.x += delta.x;
+    textRect.origin.y += delta.y;
+    tapTextArea.origin.x += delta.x;
+    tapTextArea.origin.y += delta.y;
+    [text moveBy:delta];
+    [altText moveBy:delta];
+    [bothText moveBy:delta];
 }
 
 @end
@@ -1315,14 +1373,11 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 @synthesize boundingBox;
 @synthesize active;
 @synthesize isSpline;
+@synthesize splinePoints, linePoints;
 
 - (NSString*)description
 {
     return [NSString stringWithFormat:@"Segment from '%@' to '%@' at line '%@'", start.name, end.name, start.line.name];
-}
-
--(NSArray*)splinePoints {
-    return splinePoints;
 }
 
 -(id)initFromStation:(Station *)from toStation:(Station *)to withDriving:(int)dr
@@ -1338,9 +1393,6 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 #ifdef DEBUG
         if(driving <= 0) NSLog(@"zero driving from %@ to %@", from.name, to.name);
 #endif
-        CGRect s1 = CGRectMake(from.pos.x - 5, from.pos.y - 5, 10, 10);
-        CGRect s2 = CGRectMake(to.pos.x - 5, to.pos.y - 5, 10, 10);
-        boundingBox = CGRectUnion(s1, s2);
         start.links ++;
         end.links ++;
     }
@@ -1354,28 +1406,37 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(void)appendPoint:(CGPoint)p
 {
-    if(splinePoints == nil) splinePoints = [[NSMutableArray alloc] initWithObjects:[NSValue valueWithPoint:p], nil];
-    else [splinePoints addObject:[NSValue valueWithPoint:p]];
-    CGRect r = CGRectMake(p.x - 5, p.y - 5, 10, 10);
-    boundingBox = CGRectUnion(boundingBox, r);
+    if(linePoints == nil) linePoints = [[NSMutableArray alloc] initWithObjects:[NSValue valueWithPoint:p], nil];
+    else [linePoints addObject:[NSValue valueWithPoint:p]];
 }
 
--(void)calcSpline
+-(void)prepare
 {
-    if(splinePoints == nil || [splinePoints count] == 0) return;
+    CGRect s1 = CGRectMake(start.pos.x - 5, start.pos.y - 5, 10, 10);
+    CGRect s2 = CGRectMake(end.pos.x - 5, end.pos.y - 5, 10, 10);
+    boundingBox = CGRectUnion(s1, s2);
+    for (NSValue *v in linePoints) {
+        CGPoint p = [v pointValue];
+        CGRect r = CGRectMake(p.x - 5, p.y - 5, 10, 10);
+        boundingBox = CGRectUnion(boundingBox, r);
+    }
+    if(linePoints == nil || [linePoints count] == 0) return;
     if(!isSpline) {
         [self predrawMultiline];
         return;
     }
-    [splinePoints addObject:[NSValue valueWithPoint:CGPointMake(end.pos.x, end.pos.y)]];
-    [splinePoints insertObject:[NSValue valueWithPoint:CGPointMake(start.pos.x, start.pos.y)] atIndex:0];
-    NSMutableArray *newSplinePoints = [[NSMutableArray alloc] init];
-    for(int i=1; i<[splinePoints count]-1; i++) {
-        TangentPoint *p = [[TangentPoint alloc] initWithPoint:[[splinePoints objectAtIndex:i] pointValue]];
-        [p calcTangentFrom:[[splinePoints objectAtIndex:i-1] pointValue] to:[[splinePoints objectAtIndex:i+1] pointValue]];
-        [newSplinePoints addObject:p];
+    NSMutableArray *linePoints2 = [linePoints mutableCopy];
+    [linePoints2 addObject:[NSValue valueWithPoint:CGPointMake(end.pos.x, end.pos.y)]];
+    [linePoints2 insertObject:[NSValue valueWithPoint:CGPointMake(start.pos.x, start.pos.y)] atIndex:0];
+    if(splinePoints == nil)
+        splinePoints = [[NSMutableArray alloc] init];
+    else
+        [splinePoints removeAllObjects];
+    for(int i=1; i<[linePoints2 count]-1; i++) {
+        TangentPoint *p = [[TangentPoint alloc] initWithPoint:[[linePoints2 objectAtIndex:i] pointValue]];
+        [p calcTangentFrom:[[linePoints2 objectAtIndex:i-1] pointValue] to:[[linePoints2 objectAtIndex:i+1] pointValue]];
+        [splinePoints addObject:p];
     }
-    splinePoints = newSplinePoints;
     [self predrawSpline];
 }
 
@@ -1402,10 +1463,15 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(void)draw:(CGContextRef)context
 {
-    if(splinePoints) {
+    if(linePoints) {
         CGContextMoveToPoint(context, 0, 0);
         CGContextAddPath(context, path);
         CGContextStrokePath(context);
+        for (NSValue *v in linePoints) {
+            CGPoint p = [v pointValue];
+            CGRect r = CGRectMake(p.x-7, p.y-7, 14, 14);
+            drawSelectionRect(context, r);
+        }
     } else {
         CGContextMoveToPoint(context, start.pos.x, start.pos.y);
         CGContextAddLineToPoint(context, end.pos.x, end.pos.y);
@@ -1421,12 +1487,12 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 
 -(void)predrawMultiline
 {
-    if(splinePoints) {
+    if(linePoints) {
         if(path != nil) CGPathRelease(path);
         path = CGPathCreateMutable();
         CGPathMoveToPoint(path, nil, start.pos.x, start.pos.y);
-        for (int i=0; i < [splinePoints count]; i++) {
-            CGPoint p = [[splinePoints objectAtIndex:i] pointValue];
+        for (int i=0; i < [linePoints count]; i++) {
+            CGPoint p = [[linePoints objectAtIndex:i] pointValue];
             CGPathAddLineToPoint(path, nil, p.x, p.y);
         }
         CGPathAddLineToPoint(path, nil, end.pos.x, end.pos.y);
@@ -1450,6 +1516,17 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
         tp2 = [splinePoints lastObject];
         CGPathAddQuadCurveToPoint(path, nil, tp2.frontTang.x, tp2.frontTang.y, end.pos.x, end.pos.y);
     }
+}
+
+-(void)movePoint:(int)index by:(CGPoint)delta
+{
+    NSValue *v = [linePoints objectAtIndex:index];
+    NSPoint p = [v pointValue];
+    p.x += delta.x;
+    p.y += delta.y;
+    [linePoints removeObjectAtIndex:index];
+    [linePoints insertObject:[NSValue valueWithPoint:p] atIndex:index];
+    [self prepare];
 }
 
 @end
@@ -1533,6 +1610,18 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 {
     for(Station *st in stations) {
         [st makeSegments];
+        boundingBox = CGRectUnion(boundingBox, st.boundingBox);
+        boundingBox = CGRectUnion(boundingBox, st.textRect);
+        for (Segment *seg in st.segment) {
+            boundingBox = CGRectUnion(boundingBox, seg.boundingBox);
+        }
+    }
+}
+
+-(void)updateBoundingBox
+{
+    boundingBox = CGRectZero;
+    for(Station *st in stations) {
         boundingBox = CGRectUnion(boundingBox, st.boundingBox);
         boundingBox = CGRectUnion(boundingBox, st.textRect);
         for (Segment *seg in st.segment) {
@@ -1649,16 +1738,17 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     //CGContextSetFillColorWithColor(context, [_color CGColor]);
     CGContextSetLineWidth(context, map->LineWidth);
     for (Station *s in stations) {
-        [s draw:context inRect:rect];
+        [s drawSegments:context inRect:rect];
     }
     for (Station *s in stations) {
-        if(s.transfer == nil && CGRectIntersectsRect(rect, s.boundingBox)) {
+        if(s.transfer == nil && CGRectIntersectsRect(rect, s.tapArea)) {
             if(map->StKind == LIKE_LONDON || map->StKind == LIKE_HAMBURG)
                 [s drawStation:context];
             else {
                 //CGContextDrawLayerInRect(context, s.boundingBox, stationLayer);
                 CGContextSaveGState(context);
                 [self drawNormalStationMark:context rect:s.boundingBox];
+                if(s.active) [s drawSelection:context];
                 CGContextRestoreGState(context);
             }
         }
@@ -1702,7 +1792,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
 -(void)drawNames:(CGContextRef)context inRect:(CGRect)rect
 {
     for (Station *s in stations) {
-        if(s.drawName && CGRectIntersectsRect(s.textRect, rect))
+        if(s.drawName && CGRectIntersectsRect(s.tapTextArea, rect))
             [s drawName:context];
     }
 }
@@ -2127,6 +2217,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
             }
         }
     }
+    [self resetMap:NO];
 }
 
 -(void) loadOldMap:(NSString *)mapFile trp:(NSString *)trpFile {
@@ -2257,7 +2348,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     for (Line *l in mapLines) {
         for (Station *st in l.stations) {
             for (Segment *seg in st.segment) {
-                [seg calcSpline];
+                [seg prepare];
             }
         }
     }
@@ -2606,7 +2697,7 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     for (Line *l in mapLines) {
         for (Station *st in l.stations) {
             for (Segment *seg in st.segment) {
-                [seg calcSpline];
+                [seg prepare];
             }
         }
     }
@@ -3037,8 +3128,9 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     CGContextRestoreGState(context);
 }
 
--(Station*) checkPoint:(CGPoint*)point Station:(NSMutableString *)stationName
+-(Station*) checkPoint:(CGPoint*)point Station:(NSMutableString *)stationName selectText:(BOOL *)text
 {
+    if(text) *text = NO;
     for (Line *l in mapLines) {
         for (Station *s in l.stations) {
             if(CGRectContainsPoint(s.tapArea, *point)) {
@@ -3053,11 +3145,55 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
             if(CGRectContainsPoint(s.tapTextArea, *point)) {
                 [stationName setString:s.name];
                 *point = CGPointMake(s.pos.x, s.pos.y);
+                if(text) *text = YES;
                 return s;
             }
         }
     }
     return nil;
+}
+
+-(Segment*) checkPoint:(CGPoint *)point segmentPoint:(int *)pIndex
+{
+    for (Line *l in mapLines) {
+        if(CGRectContainsPoint(l.boundingBox, *point)) {
+            for (Station *s in l.stations) {
+                for (Segment *seg in s.segment) {
+                    if(CGRectContainsPoint(seg.boundingBox, *point)) {
+                        for(int i =0; i< [seg.linePoints count]; i++) {
+                            CGPoint p = [[seg.linePoints objectAtIndex:i] pointValue];
+                            CGRect r = CGRectMake(p.x - 5, p.y - 5, 10, 10);
+                            if(CGRectContainsPoint(r, *point)) {
+                                if(pIndex) *pIndex = i;
+                                return seg;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nil;
+}
+
+-(NSArray*) checkRect:(CGRect)rect
+{
+    NSMutableArray *res = [NSMutableArray array];
+    for (Line *l in mapLines) {
+        for (Station *s in l.stations) {
+            if(CGRectIntersectsRect(rect, s.tapArea)) {
+                [res addObject:s];
+            }
+        }
+    }
+    for (Line *l in mapLines) {
+        for (Station *s in l.stations) {
+            if(CGRectIntersectsRect(s.tapTextArea, rect)) {
+                [res addObject:s];
+            }
+        }
+    }
+    return res;
 }
 
 -(void) drawActive:(CGContextRef)context inRect:(CGRect)rect
@@ -3181,5 +3317,22 @@ void drawFilledCircle(CGContextRef context, CGFloat x, CGFloat y, CGFloat r) {
     return nil;
 }
 
+-(void)updateBoundingBox
+{
+    CGRect boundingBox = CGRectZero;
+    for (Line *l in mapLines) {
+        boundingBox = CGRectUnion(boundingBox, l.boundingBox);
+    }
+    if(boundingBox.origin.x > 0) {
+        _w = boundingBox.origin.x * 2 + boundingBox.size.width;
+    } else {
+        _w = boundingBox.size.width;
+    }
+    if(boundingBox.origin.y > 0) {
+        _h = boundingBox.origin.y * 2 + boundingBox.size.height;
+    } else {
+        _h = boundingBox.size.height;
+    }
+}
 
 @end
