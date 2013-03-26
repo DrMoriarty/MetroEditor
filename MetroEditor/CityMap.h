@@ -67,6 +67,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 
 -(id) initWithMap:(CityMap*)cityMap;
 -(void) addStation:(Station*)station;
+-(void) removeStation:(Station *)station;
 -(void) draw:(CGContextRef)context;
 -(void) predraw:(CGContextRef)context;
 -(void) tuneStations;
@@ -208,6 +209,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 
 -(id)initFromStation:(Station*)from toStation:(Station*)to withDriving:(int)dr;
 -(void)appendPoint:(CGPoint)p;
+-(void)removePoint:(int)index;
 -(void)prepare;
 -(void)draw:(CGContextRef)context;
 -(void)predraw;
@@ -304,6 +306,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 @property (nonatomic, readonly) NSMutableArray *pathTimesList;
 @property (nonatomic, readonly) NSMutableArray *pathDocksList;
 @property (nonatomic, readonly) NSMutableArray *mapLines;
+@property (nonatomic, readonly) NSMutableArray *transfers;
 @property (nonatomic, assign) CGFloat currentScale;
 @property (nonatomic, readonly) NSString* backgroundImageFile;
 @property (nonatomic, readonly) NSString* foregroundImageFile;

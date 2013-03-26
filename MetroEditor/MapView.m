@@ -216,11 +216,26 @@
 {
     NSPoint loc = [self convertPoint:theEvent.locationInWindow fromView:nil];
     CGPoint p = CGPointMake(loc.x, loc.y);
-    currentStation = [self selectStationAt:&p];
-    if(currentStation == nil) {
-        currentSegment = [self selectSegmentAt:&p];
-    } else currentSegment = nil;
-    makeSelection = SELECT_SINGLE;
+    NSUInteger mod = [NSEvent modifierFlags];
+    if((mod & NSAlternateKeyMask) && (mod & NSShiftKeyMask)) {
+        // combine two lines
+        [self combineTwoLines:p];
+    } else if(mod & NSShiftKeyMask) {
+        // new station
+        [self newStation:p];
+    } else if (mod & NSAlternateKeyMask) {
+        // new transfer element
+        [self changeTransferAt:p];
+    } else if (mod & NSControlKeyMask) {
+        // new spline point
+        [self newSplinePoint:p];
+    } else {
+        currentStation = [self selectStationAt:&p];
+        if(currentStation == nil) {
+            currentSegment = [self selectSegmentAt:&p];
+        } else currentSegment = nil;
+        makeSelection = SELECT_SINGLE;
+    }
 }
 
 -(void)mouseDragged:(NSEvent *)theEvent
@@ -371,6 +386,124 @@
     NSScrollView *sv = (NSScrollView*)self.superview;
     [sv.documentView scaleUnitSquareToSize:NSMakeSize(Scale, Scale)];
     [sv.documentView setFrameSize: CGSizeMake(cityMap.w * Scale, cityMap.h * Scale) ];
+}
+
+-(void) newStation:(CGPoint)p
+{
+    MEWindow *wnd = (MEWindow*)self.window;
+    Station *ss = wnd.selectedStation;
+    NSUInteger si = 0;
+    CGRect tr = CGRectMake(p.x+50, p.y+50, 400, 100);
+    if(ss != nil) {
+        si = [ss.line.stations count];
+    }
+    Station *ns = [[Station alloc] initWithMap:cityMap name:@"New Station" pos:p index:(int)si rect:tr andDriving:@""];
+    if(ss != nil) {
+        [ss.line.stations addObject:ns];
+        ns.line = ss.line;
+        [ss.segment addObject:[[Segment alloc] initFromStation:ss toStation:ns withDriving:1]];
+        [[ss.segment lastObject] prepare];
+        [ss.line updateBoundingBox];
+    } else {
+        // make new line
+        Line *l = [[Line alloc] initWithMap:cityMap andName:@"New Line"];
+        l.index = [cityMap.mapLines count];
+        l.color = [NSColor blueColor];
+        l.pinColor = 0;
+        [cityMap.mapLines addObject:l];
+        [l.stations addObject:ns];
+        ns.line = l;
+        [l updateBoundingBox];
+    }
+    ns.active = YES;
+    [selectedStations addObject:ns];
+    [wnd selectStation:ns];
+    [cityMap updateBoundingBox];
+    [self setNeedsDisplayInRect:[self visibleRect]];
+}
+
+-(void) newSplinePoint:(CGPoint)p
+{
+    Station *s1 = ((MEWindow*)self.window).selectedStation;
+    Segment *ss = [self selectSegmentAt:&p];
+    if(ss != nil) {
+        [ss removePoint:currentSegmentPoint];
+        [ss prepare];
+        currentSegmentPoint = 0;
+        currentSegment = nil;
+        [self setNeedsDisplayInRect:[self visibleRect]];
+        return;
+    }
+    for (Segment *seg in s1.segment) {
+        if([selectedStations containsObject:seg.end]) {
+            ss = seg;
+            break;
+        }
+    }
+    if(ss == nil) for (Segment *seg in s1.backSegment) {
+        if([selectedStations containsObject:seg.start]) {
+            ss = seg;
+            break;
+        }
+    }
+    if(ss != nil) {
+        [ss appendPoint:p];
+        [ss prepare];
+        [self setNeedsDisplayInRect:[self visibleRect]];
+    }
+}
+
+-(void)changeTransferAt:(CGPoint)p
+{
+    Transfer *tr = nil;
+    currentStation = [self selectStationAt:&p];
+    if(currentStation.transfer != nil) {
+        tr = currentStation.transfer;
+        [tr removeStation:currentStation];
+        if([tr.stations count] <= 0) {
+            [cityMap.transfers removeObject:tr];
+        }
+        currentStation.active = NO;
+        [selectedStations removeObject:currentStation];
+    } else {
+        for (Station *s in selectedStations) {
+            if(s.transfer != nil) {
+                tr = s.transfer;
+                break;
+            }
+        }
+        currentStation.active = YES;
+        [selectedStations addObject:currentStation];
+        if(tr != nil) {
+            [tr addStation:currentStation];
+        } else {
+            tr = [[Transfer alloc] initWithMap:cityMap];
+            for (Station *s in selectedStations) {
+                [tr addStation:s];
+            }
+            [cityMap.transfers addObject:tr];
+        }
+        [((MEWindow*)self.window) selectStation:currentStation];
+    }
+}
+
+-(void)combineTwoLines:(CGPoint)p
+{
+    currentStation = [self selectStationAt:&p];
+    Station *s1 = ((MEWindow*)self.window).selectedStation;
+    Line *l1 = s1.line;
+    Line *l2 = currentStation.line;
+    if(l1 != l2) {
+        for (Station *s in l2.stations) {
+            s.line = l1;
+        }
+        [l1.stations addObjectsFromArray:l2.stations];
+        Segment *seg = [[Segment alloc] initFromStation:s1 toStation:currentStation withDriving:1];
+        [seg prepare];
+        [s1.segment addObject:seg];
+        [l2.stations removeAllObjects];
+        [cityMap.mapLines removeObject:l2];
+    }
 }
 
 @end

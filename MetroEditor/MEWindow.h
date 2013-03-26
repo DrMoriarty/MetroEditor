@@ -11,7 +11,7 @@
 #import "CityMap.h"
 
 @interface MEWindow : NSWindow {
-    __weak Station *selectedStation;
+    __weak Station *_selectedStation;
 }
 
 @property (nonatomic, strong) CityMap* cityMap;
@@ -26,4 +26,5 @@
 -(void)scaleBy:(CGFloat)factor;
 
 -(void)selectStation:(Station*)st;
+-(Station*)selectedStation;
 @end

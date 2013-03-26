@@ -609,6 +609,23 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     else boundingBox = CGRectUnion(boundingBox, st);
 }
 
+-(void)removeStation:(Station *)station
+{
+    [stations removeObject:station];
+    station.transfer = nil;
+    if(station.drawName) {
+        [(Station*)[stations anyObject] setDrawName:YES];
+    } else {
+        station.drawName = YES;
+    }
+    boundingBox = CGRectZero;
+    for(Station *s in stations) {
+        CGRect st = CGRectMake(station.pos.x - map->StationDiameter, station.pos.y - map->StationDiameter, map->StationDiameter*2.f, map->StationDiameter*2.f);
+        if(CGRectIsNull(boundingBox)) boundingBox = st;
+        else boundingBox = CGRectUnion(boundingBox, st);
+    }
+}
+
 -(void) drawTransferLikeLondon:(CGContextRef) context stations:(NSArray*)sts
 {
     NSMutableArray *coords = [NSMutableArray array];
@@ -693,6 +710,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     for(int i = 0; i<[sts count]; i++) {
         Station *st = [sts objectAtIndex:i];
         CGPoint p1 = st.pos;
+        drawFilledCircle(context, p1.x, p1.y, map->LineWidth);
         for(int j = i+1; j<[sts count]; j++) {
             Station *st2 = [sts objectAtIndex:j];
             CGPoint p2 = st2.pos;
@@ -700,7 +718,6 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
             CGFloat dy = (p1.y-p2.y);
             CGFloat d2 = dx*dx + dy*dy;
             if(d2 > map->StationDiameter*map->StationDiameter*6) {
-                drawFilledCircle(context, p1.x, p1.y, map->LineWidth);
                 drawFilledCircle(context, p2.x, p2.y, map->LineWidth);
                 drawLine(context, p1.x, p1.y, p2.x, p2.y, map->LineWidth);
             } else
@@ -712,6 +729,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     for(int i = 0; i<[sts count]; i++) {
         Station *st = [sts objectAtIndex:i];
         CGPoint p1 = st.pos;
+        drawFilledCircle(context, p1.x, p1.y, map->LineWidth-blackW/2);
         for(int j = i+1; j<[sts count]; j++) {
             Station *st2 = [sts objectAtIndex:j];
             CGPoint p2 = st2.pos;
@@ -719,7 +737,6 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
             CGFloat dy = (p1.y-p2.y);
             CGFloat d2 = dx*dx + dy*dy;
             if(d2 > map->StationDiameter*map->StationDiameter*6) {
-                drawFilledCircle(context, p1.x, p1.y, map->LineWidth-blackW/2);
                 drawFilledCircle(context, p2.x, p2.y, map->LineWidth-blackW/2);
                 drawLine(context, p1.x, p1.y, p2.x, p2.y, map->LineWidth-blackW);
             } else 
@@ -1410,6 +1427,11 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     else [linePoints addObject:[NSValue valueWithPoint:p]];
 }
 
+-(void)removePoint:(int)index
+{
+    [linePoints removeObjectAtIndex:index];
+}
+
 -(void)prepare
 {
     CGRect s1 = CGRectMake(start.pos.x - 5, start.pos.y - 5, 10, 10);
@@ -1420,7 +1442,14 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         CGRect r = CGRectMake(p.x - 5, p.y - 5, 10, 10);
         boundingBox = CGRectUnion(boundingBox, r);
     }
-    if(linePoints == nil || [linePoints count] == 0) return;
+    if(linePoints == nil || [linePoints count] == 0) {
+        if(path != nil) CGPathRelease(path);
+        [splinePoints removeAllObjects];
+        path = nil;
+        linePoints = nil;
+        splinePoints = nil;
+        return;
+    }
     if(!isSpline) {
         [self predrawMultiline];
         return;
@@ -2056,7 +2085,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 @synthesize pathStationsList;
 @synthesize pathTimesList;
 @synthesize pathDocksList;
-@synthesize mapLines;
+@synthesize mapLines, transfers;
 @synthesize currentScale;
 @synthesize backgroundImageFile;
 @synthesize foregroundImageFile;

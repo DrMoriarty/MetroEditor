@@ -110,16 +110,16 @@
 
 -(IBAction)stationNameChanged:(id)sender
 {
-    if(selectedStation) {
-        [selectedStation setNameSource:[_textField stringValue]];
+    if(_selectedStation) {
+        [_selectedStation setNameSource:[_textField stringValue]];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
 }
 
 -(IBAction)lineColorChanged:(id)sender
 {
-    if(selectedStation) {
-        [selectedStation.line setColor:[_colorWell color]];
+    if(_selectedStation) {
+        [_selectedStation.line setColor:[_colorWell color]];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
 }
@@ -129,14 +129,19 @@
     if(st != nil) {
         [_textField setStringValue:st.nameSource];
         [_colorWell setColor:st.line.color];
-        selectedStation = st;
+        _selectedStation = st;
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     } else {
         [_textField setStringValue:@""];
         [_colorWell setColor:[NSColor blackColor]];
-        selectedStation = nil;
+        _selectedStation = nil;
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
+}
+
+-(Station*)selectedStation
+{
+    return _selectedStation;
 }
 
 -(IBAction)alignHorizontal:(id)sender
