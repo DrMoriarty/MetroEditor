@@ -1178,7 +1178,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     BOOL preferFrontPoint = NO, preferBackPoint = NO;
     if([segment count] > 0) {
         for (Segment *seg in segment) {
-            if([seg.splinePoints count] == 0) {
+            if([seg.linePoints count] == 0) {
                 fp = seg.end.pos;
                 preferFrontPoint = YES;
                 break;
@@ -1186,12 +1186,12 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         }
         if(!preferFrontPoint) {
             Segment *s = [segment objectAtIndex:0];
-            fp = [[s.splinePoints objectAtIndex:0] pointValue];
+            fp = [[s.linePoints objectAtIndex:0] pointValue];
         }
     } 
     if([backSegment count] > 0) {
         for (Segment *seg in backSegment) {
-            if([seg.splinePoints count] == 0) {
+            if([seg.linePoints count] == 0) {
                 bp = seg.start.pos;
                 preferBackPoint = YES;
                 break;
@@ -1199,7 +1199,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         }
         if(!preferBackPoint) {
             Segment *s = [backSegment objectAtIndex:0];
-            bp = [[s.splinePoints lastObject] pointValue];
+            bp = [[s.linePoints lastObject] pointValue];
         }
     } 
     if(preferFrontPoint || CGPointEqualToPoint(bp, CGPointZero)) 
@@ -1421,6 +1421,14 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     CGPathRelease(path);
 }
 
+-(void)setIsSpline:(BOOL)isSp
+{
+    if(isSp != isSpline) {
+        isSpline = isSp;
+        [self prepare];
+    }
+}
+
 -(void)appendPoint:(CGPoint)p
 {
     if(linePoints == nil) linePoints = [[NSMutableArray alloc] initWithObjects:[NSValue valueWithPoint:p], nil];
@@ -1633,6 +1641,12 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     
     _disabledColor = [NSColor colorWithCIColor:[CIColor colorWithRed:r green:g blue:b]];
     
+}
+
+-(void)setName:(NSString *)n
+{
+    name = n;
+    shortName = [[n componentsSeparatedByString:@" "] lastObject];
 }
 
 -(void)postInit

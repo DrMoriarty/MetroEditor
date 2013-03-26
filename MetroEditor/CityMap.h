@@ -234,7 +234,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 }
 @property (nonatomic, retain) NSColor* color;
 @property (nonatomic, assign) int pinColor;
-@property (nonatomic, readonly) NSString* name;
+@property (nonatomic, retain) NSString* name;
 @property (nonatomic, readonly) NSString* shortName;
 @property (nonatomic, readonly) NSMutableArray* stations;
 @property (nonatomic, assign) int index;

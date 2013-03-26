@@ -197,7 +197,8 @@
         s.active = YES;
     }
     [selectedStations addObjectsFromArray:a];
-    [(MEWindow*)self.window selectStation:[a lastObject]];
+    currentStation = [a lastObject];
+    [self updateSelection];
 }
 
 -(void)adjustMap
@@ -272,7 +273,7 @@
             [selectedStations removeAllObjects];
             currentStation.active = YES;
             [selectedStations addObject:currentStation];
-            [(MEWindow*)self.window selectStation:currentStation];
+            [self updateSelection];
         } else if(currentStation == nil) {
             if(!([NSEvent modifierFlags] & NSCommandKeyMask)) {
                 // CMD not pressed
@@ -313,17 +314,17 @@
             [selectedStations removeAllObjects];
             currentStation.active = YES;
             [selectedStations addObject:currentStation];
-            [(MEWindow*)self.window selectStation:currentStation];
+            [self updateSelection];
         } else {
             // CMD pressed
             if(currentStation.active) {
                 currentStation.active = NO;
                 [selectedStations removeObject:currentStation];
-                [(MEWindow*)self.window selectStation:[selectedStations anyObject]];
+                [self updateSelection];
             } else {
                 currentStation.active = YES;
                 [selectedStations addObject:currentStation];
-                [(MEWindow*)self.window selectStation:currentStation];
+                [self updateSelection];
             }
         }
     } else if(makeSelection == SELECT_SINGLE && currentStation == nil && [selectedStations count] > 0) {
@@ -331,7 +332,8 @@
             s.active = NO;
         }
         [selectedStations removeAllObjects];
-        [(MEWindow*)self.window selectStation:nil];
+        currentStation = nil;
+        [self updateSelection];
     } else if(makeSelection == SELECT_MULTI) {
         [self selectStationsByRect:multiSelectRect];
         multiSelectRect = CGRectZero;
@@ -392,6 +394,28 @@
 {
     MEWindow *wnd = (MEWindow*)self.window;
     Station *ss = wnd.selectedStation;
+    Station *s2 = [self selectStationAt:&p];
+    if(s2 != nil && ss.line == s2.line) {
+        BOOL con = NO;
+        for (Segment *seg in ss.segment) {
+            if(seg.end == s2) {
+                con = YES;
+                break;
+            }
+        }
+        if(!con) for(Segment *seg in ss.backSegment) {
+            if(seg.start == s2) {
+                con = YES;
+                break;
+            }
+        }
+        if(!con) {
+            [ss.segment addObject:[[Segment alloc] initFromStation:ss toStation:s2 withDriving:1]];
+            [[ss.segment lastObject] prepare];
+            [ss.line updateBoundingBox];
+            return;
+        }
+    }
     NSUInteger si = 0;
     CGRect tr = CGRectMake(p.x+50, p.y+50, 400, 100);
     if(ss != nil) {
@@ -416,10 +440,10 @@
         [l updateBoundingBox];
     }
     ns.active = YES;
+    currentStation = ns;
     [selectedStations addObject:ns];
-    [wnd selectStation:ns];
     [cityMap updateBoundingBox];
-    [self setNeedsDisplayInRect:[self visibleRect]];
+    [self updateSelection];
 }
 
 -(void) newSplinePoint:(CGPoint)p
@@ -457,6 +481,7 @@
 {
     Transfer *tr = nil;
     currentStation = [self selectStationAt:&p];
+    if(currentStation == nil) return;
     if(currentStation.transfer != nil) {
         tr = currentStation.transfer;
         [tr removeStation:currentStation];
@@ -483,7 +508,7 @@
             }
             [cityMap.transfers addObject:tr];
         }
-        [((MEWindow*)self.window) selectStation:currentStation];
+        [self updateSelection];
     }
 }
 
@@ -503,6 +528,45 @@
         [s1.segment addObject:seg];
         [l2.stations removeAllObjects];
         [cityMap.mapLines removeObject:l2];
+    }
+}
+
+-(void)updateSelection
+{
+    MEWindow *wnd = (MEWindow*)self.window;
+    if(currentStation != nil) {
+        [wnd selectStation:currentStation];
+        [wnd selectLine:currentStation.line];
+        Segment *seg = nil;
+        for (Segment *s in currentStation.segment) {
+            if([selectedStations containsObject:s.end]) {
+                seg = s;
+                break;
+            }
+        }
+        if(seg == nil) for(Segment *s in currentStation.backSegment) {
+            if([selectedStations containsObject:s.start]) {
+                seg = s;
+                break;
+            }
+        }
+        [wnd selectSegment:seg];
+    } else if([selectedStations count] > 0) {
+        Station *st = [selectedStations anyObject];
+        [wnd selectStation:st];
+        [wnd selectLine:st.line];
+        for (Station *s1 in selectedStations) {
+            for (Segment *s in s1.segment) {
+                if([selectedStations containsObject:s.end]) {
+                    [wnd selectSegment:s];
+                    break;
+                }
+            }
+        }
+    } else {
+        [wnd selectStation:nil];
+        [wnd selectSegment:nil];
+        [wnd selectLine:nil];
     }
 }
 

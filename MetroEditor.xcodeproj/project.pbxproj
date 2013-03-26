@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		511237E61701DA3A0007B61D /* NSView+DisableSubAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 511237E51701DA390007B61D /* NSView+DisableSubAdditions.m */; };
 		51B1073316C10B1600970797 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51B1073216C10B1600970797 /* Cocoa.framework */; };
 		51B1073D16C10B1700970797 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51B1073B16C10B1700970797 /* InfoPlist.strings */; };
 		51B1073F16C10B1700970797 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 51B1073E16C10B1700970797 /* main.m */; };
@@ -35,6 +36,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		511237E41701DA390007B61D /* NSView+DisableSubAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSView+DisableSubAdditions.h"; sourceTree = "<group>"; };
+		511237E51701DA390007B61D /* NSView+DisableSubAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSView+DisableSubAdditions.m"; sourceTree = "<group>"; };
 		51B1072E16C10B1600970797 /* MetroEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetroEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		51B1073216C10B1600970797 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		51B1073516C10B1600970797 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -158,6 +161,8 @@
 				51F3903316D4C96F008CA08E /* MEWindow.m */,
 				51B1074A16C10B1800970797 /* MetroEditor.xcdatamodeld */,
 				51B1073916C10B1700970797 /* Supporting Files */,
+				511237E41701DA390007B61D /* NSView+DisableSubAdditions.h */,
+				511237E51701DA390007B61D /* NSView+DisableSubAdditions.m */,
 			);
 			path = MetroEditor;
 			sourceTree = "<group>";
@@ -286,6 +291,7 @@
 				51F3902E16D4BC40008CA08E /* section.m in Sources */,
 				51F3903116D4BC40008CA08E /* utils.m in Sources */,
 				51F3903416D4C96F008CA08E /* MEWindow.m in Sources */,
+				511237E61701DA3A0007B61D /* NSView+DisableSubAdditions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

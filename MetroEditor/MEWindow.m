@@ -7,6 +7,7 @@
 //
 
 #import "MEWindow.h"
+#import "NSView+DisableSubAdditions.h"
 
 @implementation MEWindow
 
@@ -111,15 +112,30 @@
 -(IBAction)stationNameChanged:(id)sender
 {
     if(_selectedStation) {
-        [_selectedStation setNameSource:[_textField stringValue]];
+        [_selectedStation setNameSource:[self.stationName stringValue]];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+-(IBAction)lineNameChanged:(id)sender
+{
+    if(_selectedLine) {
+        _selectedLine.name = [self.lineName stringValue];
     }
 }
 
 -(IBAction)lineColorChanged:(id)sender
 {
     if(_selectedStation) {
-        [_selectedStation.line setColor:[_colorWell color]];
+        [_selectedStation.line setColor:[self.lineColor color]];
+        [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+-(IBAction)splineChanged:(id)sender
+{
+    if(_selectedSegment) {
+        _selectedSegment.isSpline = self.splineSegment.state;
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
 }
@@ -127,21 +143,60 @@
 -(void)selectStation:(Station *)st
 {
     if(st != nil) {
-        [_textField setStringValue:st.nameSource];
-        [_colorWell setColor:st.line.color];
+        [self.stationBox enableSubViews];
         _selectedStation = st;
+        [self.stationName setStringValue:st.nameSource];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     } else {
-        [_textField setStringValue:@""];
-        [_colorWell setColor:[NSColor blackColor]];
+        [self.stationBox disableSubViews];
         _selectedStation = nil;
+        [self.stationName setStringValue:@""];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
+}
+
+-(void)selectSegment:(Segment *)seg
+{
+    if(seg != nil) {
+        _selectedSegment = seg;
+        [self.splineSegment setState:seg.isSpline];
+        [self.segmentBox enableSubViews];
+    } else {
+        _selectedSegment = nil;
+        [self.splineSegment setState:NSOffState];
+        [self.segmentBox disableSubViews];
+    }
+}
+
+-(void)selectLine:(Line *)line
+{
+    if(line != nil) {
+        _selectedLine = line;
+        [self.lineName setStringValue:line.name];
+        [self.lineColor setColor:line.color];
+        [self.lineBox enableSubViews];
+    } else {
+        _selectedLine = nil;
+        [self.lineName setStringValue:@""];
+        [self.lineColor setColor:[NSColor blackColor]];
+        [self.lineBox disableSubViews];
+    }
+    [self.table reloadData];
 }
 
 -(Station*)selectedStation
 {
     return _selectedStation;
+}
+
+-(Segment*)selectedSegment
+{
+    return _selectedSegment;
+}
+
+-(Line*)selectedLine
+{
+    return _selectedLine;
 }
 
 -(IBAction)alignHorizontal:(id)sender
@@ -153,5 +208,84 @@
 {
     [_mapView alignVertical];
 }
+
+-(IBAction)removeSegment:(id)sender
+{
+    if(_selectedSegment != nil) {
+        [_selectedSegment.start.segment removeObject:_selectedSegment];
+        [_selectedSegment.end.backSegment removeObject:_selectedSegment];
+        [self selectSegment:nil];
+        [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+-(IBAction)removeStation:(id)sender
+{
+    if(_selectedStation != nil) {
+        for (Segment *s in _selectedStation.segment) {
+            [s.end.backSegment removeObject:s];
+        }
+        for (Segment *s in _selectedStation.backSegment) {
+            [s.start.segment removeObject:s];
+        }
+        [_selectedStation.segment removeAllObjects];
+        [_selectedStation.backSegment removeAllObjects];
+        if(_selectedStation.transfer) {
+            [_selectedStation.transfer removeStation:_selectedStation];
+            _selectedStation.transfer = nil;
+        }
+        [_selectedStation.line.stations removeObject:_selectedStation];
+        _selectedStation.line = nil;
+        [self selectStation:nil];
+        [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+-(IBAction)removeLine:(id)sender
+{
+    if(_selectedLine != nil) {
+        for(Station *s in _selectedLine.stations) {
+            if(s.transfer != nil) {
+                [s.transfer removeStation:s];
+            }
+            [s.segment removeAllObjects];
+            [s.backSegment removeAllObjects];
+        }
+        [_selectedLine.stations removeAllObjects];
+        [_mapView.cityMap.mapLines removeObject:_selectedLine];
+        [self selectLine:nil];
+        [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+#pragma mark - NSTableViewDataSource
+
+-(NSInteger)numberOfRowsInTableView:(NSTableView *)tableView
+{
+    if(self.selectedLine != nil) {
+        return [self.selectedLine.stations count];
+    } else {
+        return 0;
+    }
+}
+
+-(id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+{
+    Station *s = [_selectedLine.stations objectAtIndex:row];
+    if([tableColumn.identifier isEqualToString:@"1"]) {
+        return s.name;
+    } else if([tableColumn.identifier isEqualToString:@"2"]) {
+        return [NSValue valueWithPoint:s.gpsCoords];
+    }
+    return nil;
+}
+
+-(void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
+{
+    
+}
+
+#pragma mark - NSTableViewDelegate
+
 
 @end
