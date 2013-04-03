@@ -545,12 +545,11 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         r.origin = offset;
         CGContextTranslateCTM(context, base.x, base.y);
         CGContextRotateCTM(context, angle);
-        r.size.height = 0;
         for (NSString *w in words) {
             int height = [[heights valueForKey:w] intValue];
-            [w drawWithRect:r options:0 attributes:attributes];
             r.origin.y += height;
-            r.size.height += height;
+            r.size.height -= height;
+            [w drawWithRect:r options:0 attributes:attributes];
         }
         CGContextRestoreGState(context);
     }

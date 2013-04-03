@@ -112,6 +112,7 @@
 -(IBAction)stationNameChanged:(id)sender
 {
     if(_selectedStation) {
+        [_mapView saveState];
         [_selectedStation setNameSource:[self.stationName stringValue]];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
@@ -120,6 +121,7 @@
 -(IBAction)lineNameChanged:(id)sender
 {
     if(_selectedLine) {
+        [_mapView saveState];
         _selectedLine.name = [self.lineName stringValue];
     }
 }
@@ -127,6 +129,7 @@
 -(IBAction)lineColorChanged:(id)sender
 {
     if(_selectedStation) {
+        [_mapView saveState];
         [_selectedStation.line setColor:[self.lineColor color]];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
@@ -135,6 +138,7 @@
 -(IBAction)splineChanged:(id)sender
 {
     if(_selectedSegment) {
+        [_mapView saveState];
         _selectedSegment.isSpline = self.splineSegment.state;
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
