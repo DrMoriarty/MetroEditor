@@ -45,6 +45,8 @@ enum {SELECT_NONE=0, SELECT_SINGLE, SELECT_MULTI};
     int currentSegmentPoint;
     CGRect multiSelectRect;
     BOOL selectText;
+    
+    NSMutableArray *undo;
 }
 
 @property (weak) NSString *nearestStationName;
@@ -77,5 +79,8 @@ enum {SELECT_NONE=0, SELECT_SINGLE, SELECT_MULTI};
 -(void)adjustMap;
 -(void)alignVertical;
 -(void)alignHorizontal;
+
+-(void)saveState;
+-(BOOL)restoreState;
 
 @end

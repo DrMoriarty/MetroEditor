@@ -12,6 +12,8 @@
 //#import "tubeAppDelegate.h"
 //#import "Utils.h"
 
+#define MAX_UNDO 1000
+
 CGFloat sqr(CGFloat v) {
     return v*v;
 }
@@ -543,13 +545,12 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         r.origin = offset;
         CGContextTranslateCTM(context, base.x, base.y);
         CGContextRotateCTM(context, angle);
-        r.origin.y += r.size.height;
         r.size.height = 0;
         for (NSString *w in words) {
             int height = [[heights valueForKey:w] intValue];
-            r.origin.y -= height;
-            r.size.height += height;
             [w drawWithRect:r options:0 attributes:attributes];
+            r.origin.y += height;
+            r.size.height += height;
         }
         CGContextRestoreGState(context);
     }
@@ -568,6 +569,25 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 -(void)dealloc
 {
     CGLayerRelease(predrawedText);
+}
+
+-(id)copyWithZone:(NSZone*)zone
+{
+    ComplexText *t = [[[self class] allocWithZone:zone] init];
+    if(t) {
+        t->string = [string copyWithZone:zone];
+        t->source = [source copyWithZone:zone];
+        t->angle = angle;
+        t->align = align;
+        t->font = [font copyWithZone:zone];
+        t->rect = rect;
+        t->predrawedText = predrawedText;
+        t->base = base;
+        t->offset = offset;
+        t->words = [words copyWithZone:zone];
+        t->boundingBox = boundingBox;
+    }
+    return t;
 }
 
 @end
@@ -938,6 +958,41 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         }
     } else {
         //NSLog(@"more than two stations in transfer, %@", [[stations anyObject] name]);
+    }
+}
+
+-(id)copyWithZone:(NSZone*)zone
+{
+    Transfer *t = [[[self class] allocWithZone:zone] init];
+    if(t) {
+        t->stations = stations;
+        t->time = time;
+        t->boundingBox = boundingBox;
+        t->transferLayer = transferLayer;
+        t->active = active;
+        t->map = map;
+        t->_deepCopy = nil;
+    }
+    return t;
+}
+
+-(id)superCopy
+{
+    if(_deepCopy == nil) {
+        _deepCopy = [self copy];
+        _deepCopy->stations = [NSMutableSet set];
+        for(Station *s in stations) {
+            [_deepCopy->stations addObject:[s superCopy]];
+        }
+    }
+    return _deepCopy;
+}
+
+-(void)dropCopy
+{
+    _deepCopy = nil;
+    for(Station *s in stations) {
+        [s dropCopy];
     }
 }
 
@@ -1356,6 +1411,125 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     [bothText moveBy:delta];
 }
 
+-(id)copyWithZone:(NSZone*)zone
+{
+    Station *s = [[[self class] allocWithZone:zone] init];
+    if(s) {
+        s->pos = pos;
+        s->boundingBox = boundingBox;
+        s->textRect = textRect;
+        s->tapArea = tapArea;
+        s->tapTextArea = tapTextArea;
+        s->index = index;
+        s->driving = driving;
+        s->name = name;
+        s->segment = segment;
+        s->backSegment = backSegment;
+        s->sibling = sibling;
+        s->relation = relation;
+        s->relationDriving = relationDriving;
+        s->transfer = transfer;
+        s->line = line;
+        s->drawName = drawName;
+        s->active = active;
+        s->acceptBackLink = acceptBackLink;
+        s->links = links;
+        s->tangent = tangent;
+        s->normal = normal;
+        s->map = map;
+        s->text = text;
+        s->altText = altText;
+        s->bothText = bothText;
+        s->way1 = way1;
+        s->way2 = way2;
+        s->transferDriving = transferDriving;
+        s->defaultTransferDriving = defaultTransferDriving;
+        s->transferWay = transferWay;
+        s->reverseTransferWay = reverseTransferWay;
+        s->defaultTransferWay = defaultTransferWay;
+        s->gpsCoords = gpsCoords;
+        s->forwardWay = forwardWay;
+        s->backwardWay = backwardWay;
+        s->firstStations = firstStations;
+        s->lastStations = lastStations;
+        s->_deepCopy = nil;
+    }
+    return s;
+}
+
+-(id)superCopy
+{
+    if(_deepCopy == nil) {
+        _deepCopy = [self copy];
+        _deepCopy->name = [name copy];
+        _deepCopy->segment = [NSMutableArray array];
+        for(Segment *s in segment) {
+            [_deepCopy->segment addObject:[s superCopy]];
+        }
+        _deepCopy->backSegment = [NSMutableArray array];
+        for(Segment *s in backSegment) {
+            [_deepCopy->backSegment addObject:[s superCopy]];
+        }
+//        if(sibling != nil) {
+//            _deepCopy->sibling = [NSMutableArray array];
+//            for (Station *st in sibling) {
+//                [_deepCopy->sibling addObject:st];
+//            }
+//        }
+        // relation
+        // relationDriving
+        _deepCopy->transfer = [transfer superCopy];
+        _deepCopy->line = [line superCopy];
+        _deepCopy->text = [text copy];
+        _deepCopy->altText = [altText copy];
+        _deepCopy->bothText = [bothText copy];
+        _deepCopy->transferDriving = [transferDriving mutableCopy];
+        _deepCopy->transferWay = [transferWay mutableCopy];
+        _deepCopy->reverseTransferWay = [reverseTransferWay mutableCopy];
+        _deepCopy->forwardWay = [NSMutableArray array];
+        for (Station *s in forwardWay) {
+            [_deepCopy->forwardWay addObject:[s superCopy]];
+        }
+        _deepCopy->backwardWay = [NSMutableArray array];
+        for (Station *s in backwardWay) {
+            [_deepCopy->backwardWay addObject:[s superCopy]];
+        }
+        _deepCopy->firstStations = [NSMutableArray array];
+        for (Station *s in firstStations) {
+            [_deepCopy->firstStations addObject:[s superCopy]];
+        }
+        _deepCopy->lastStations = [NSMutableArray array];
+        for (Station *s in lastStations) {
+            [_deepCopy->lastStations addObject:[s superCopy]];
+        }
+    }
+    return _deepCopy;
+}
+
+-(void)dropCopy
+{
+    if(_deepCopy == nil) return;
+    _deepCopy = nil;
+    for (Segment *s in segment) {
+        [s dropCopy];
+    }
+    for (Segment *s in backSegment) {
+        [s dropCopy];
+    }
+    for (Station *s in forwardWay) {
+        [s dropCopy];
+    }
+    for (Station *s in backwardWay) {
+        [s dropCopy];
+    }
+    for (Station *s in firstStations) {
+        [s dropCopy];
+    }
+    for (Station *s in lastStations) {
+        [s dropCopy];
+    }
+}
+
 @end
 
 @implementation TangentPoint
@@ -1564,6 +1738,44 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     [linePoints removeObjectAtIndex:index];
     [linePoints insertObject:[NSValue valueWithPoint:p] atIndex:index];
     [self prepare];
+}
+
+-(id)copyWithZone:(NSZone*)zone
+{
+    Segment *s = [[[self class] allocWithZone:zone] init];
+    if(s) {
+        s->start = start;
+        s->end = end;
+        s->driving = driving;
+        s->linePoints = linePoints;
+        s->splinePoints = splinePoints;
+        s->boundingBox = boundingBox;
+        s->active = active;
+        s->isSpline = isSpline;
+        s->path = nil;
+        s->_deepCopy = nil;
+    }
+    return s;
+}
+
+-(id)superCopy
+{
+    if(_deepCopy == nil) {
+        _deepCopy = [self copy];
+        _deepCopy->start = [start superCopy];
+        _deepCopy->end = [end superCopy];
+        _deepCopy->linePoints = [linePoints mutableCopy];
+        _deepCopy->splinePoints = [splinePoints mutableCopy];
+        [_deepCopy prepare];
+    }
+    return _deepCopy;
+}
+
+-(void)dropCopy
+{
+    _deepCopy = nil;
+    [start dropCopy];
+    [end dropCopy];
 }
 
 @end
@@ -2086,6 +2298,53 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     }
 }
 
+-(id)copyWithZone:(NSZone*)zone
+{
+    Line *l = [[[self class] allocWithZone:zone] init];
+    if(l) {
+        l->name = name;
+        l->shortName = shortName;
+        l->stations = stations;
+        l->_color = _color;
+        l->_disabledColor = _disabledColor;
+        l->index = index;
+        l->scc = scc;
+        l->_pinColor = _pinColor;
+        l->stationLayer = stationLayer;
+        l->disabledStationLayer = disabledStationLayer;
+        l->boundingBox = boundingBox;
+        l->twoStepsDraw = twoStepsDraw;
+        l->map = map;
+        l->hasAltNames = hasAltNames;
+        l->_deepCopy = nil;
+    }
+    return l;
+}
+
+-(id)superCopy
+{
+    if(_deepCopy == nil) {
+        _deepCopy = [self copy];
+        _deepCopy->name = [name copy];
+        _deepCopy->shortName = [shortName copy];
+        _deepCopy->_color = [_color copy];
+        _deepCopy->_disabledColor = [_disabledColor copy];
+        _deepCopy->stations = [NSMutableArray array];
+        for (Station *s in stations) {
+            [_deepCopy->stations addObject:[s superCopy]];
+        }
+    }
+    return _deepCopy;
+}
+
+-(void)dropCopy
+{
+    _deepCopy = nil;
+    for (Station *s in stations) {
+        [s dropCopy];
+    }
+}
+
 @end
 
 @implementation CityMap
@@ -2143,6 +2402,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     pathTimesList = [[NSMutableArray alloc] init];
     pathDocksList = [[NSMutableArray alloc] init];
     maxScale = 4;
+    undo = [[NSMutableArray alloc] init];
 }
 
 -(CGSize) size { return CGSizeMake(_w, _h); }
@@ -3376,6 +3636,62 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     } else {
         _h = boundingBox.size.height;
     }
+}
+
+-(NSMutableArray*)copyOfMapLines
+{
+    NSMutableArray *a = [NSMutableArray array];
+    for (Line *l in mapLines) {
+        [a addObject:[l superCopy]];
+    }
+    return a;
+}
+
+-(NSMutableArray*) copyOfTransfers
+{
+    NSMutableArray *a = [NSMutableArray array];
+    for (Transfer *t in transfers) {
+        [a addObject:[t superCopy]];
+    }
+    return a;
+}
+
+-(void)dropCopy
+{
+    for (Line *l in mapLines) {
+        [l dropCopy];
+    }
+}
+
+-(void)saveState
+{
+    NSDictionary *state = @{@"mapLines": [self copyOfMapLines], @"transfers": [self copyOfTransfers]};
+    [self dropCopy];
+    [undo addObject:state];
+    while([undo count] > MAX_UNDO) {
+        [undo removeObjectAtIndex:0];
+    }
+    NSLog(@"save state: %ld", [undo count]);
+}
+
+-(BOOL)restoreState
+{
+    NSDictionary *state = [undo lastObject];
+    if(state) {
+        mapLines = [state valueForKey:@"mapLines"];
+        transfers = [state valueForKey:@"transfers"];
+        [self updateBoundingBox];
+        [undo removeLastObject];
+        NSLog(@"restore state: %ld", [undo count]);
+        return YES;
+    }
+    NSLog(@"no saves!");
+    return NO;
+}
+
+-(NSUInteger)undoNumber
+{
+    return [undo count];
 }
 
 @end

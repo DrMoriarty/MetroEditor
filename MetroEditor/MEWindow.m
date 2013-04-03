@@ -212,6 +212,7 @@
 -(IBAction)removeSegment:(id)sender
 {
     if(_selectedSegment != nil) {
+        [_mapView saveState];
         [_selectedSegment.start.segment removeObject:_selectedSegment];
         [_selectedSegment.end.backSegment removeObject:_selectedSegment];
         [self selectSegment:nil];
@@ -222,6 +223,7 @@
 -(IBAction)removeStation:(id)sender
 {
     if(_selectedStation != nil) {
+        [_mapView saveState];
         for (Segment *s in _selectedStation.segment) {
             [s.end.backSegment removeObject:s];
         }
@@ -244,6 +246,7 @@
 -(IBAction)removeLine:(id)sender
 {
     if(_selectedLine != nil) {
+        [_mapView saveState];
         for(Station *s in _selectedLine.stations) {
             if(s.transfer != nil) {
                 [s.transfer removeStation:s];
@@ -257,6 +260,29 @@
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
 }
+
+-(void)keyDown:(NSEvent *)theEvent
+{
+    NSUInteger mod = theEvent.modifierFlags;
+    unsigned short code = theEvent.keyCode;
+    if((mod & NSCommandKeyMask)) {
+        if(code == 51) {
+            // delete
+            [self removeStation:nil];
+        } else if(code == 6) {
+            // undo
+            if([_mapView restoreState]) {
+                [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+            }
+        }
+    }
+}
+
+-(void)keyUp:(NSEvent *)theEvent
+{
+}
+
+
 
 #pragma mark - NSTableViewDataSource
 

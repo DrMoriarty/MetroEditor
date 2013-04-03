@@ -71,6 +71,7 @@
         Scale = 1.f;
         selectedStationName = [[NSMutableString alloc] init];
         selectedStations = [[NSMutableSet alloc] init];
+        undo = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -87,6 +88,7 @@
         Scale = 1.f;
         selectedStationName = [[NSMutableString alloc] init];
         selectedStations = [[NSMutableSet alloc] init];
+        undo = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -205,14 +207,6 @@
 {
 }
 
--(void)keyDown:(NSEvent *)theEvent
-{
-}
-
--(void)keyUp:(NSEvent *)theEvent
-{
-}
-
 -(void)mouseDown:(NSEvent *)theEvent
 {
     NSPoint loc = [self convertPoint:theEvent.locationInWindow fromView:nil];
@@ -248,7 +242,7 @@
         return;
     }
     if(currentSegment != nil) {
-        CGPoint delta = CGPointMake(theEvent.deltaX / Scale, -theEvent.deltaY / Scale);
+        CGPoint delta = CGPointMake(theEvent.deltaX / Scale, theEvent.deltaY / Scale);
         [currentSegment movePoint:currentSegmentPoint by:delta];
         [self setNeedsDisplayInRect:[self visibleRect]];
         return;
@@ -288,7 +282,10 @@
             multiSelectRect.size = CGSizeZero;
             return;
         }
-        CGPoint delta = CGPointMake(theEvent.deltaX / Scale, -theEvent.deltaY / Scale);
+        if(makeSelection == SELECT_SINGLE) {
+            [self saveState];
+        }
+        CGPoint delta = CGPointMake(theEvent.deltaX / Scale, theEvent.deltaY / Scale);
         if([selectedStations count] > 0) {
             for (Station *s in selectedStations) {
                 if(selectText) [s moveTextBy:delta];
@@ -356,6 +353,7 @@
 
 -(void)alignHorizontal
 {
+    [self saveState];
     CGPoint center = CGPointZero;
     for (Station *s in selectedStations) {
         center.y += s.pos.y;
@@ -369,6 +367,7 @@
 
 -(void)alignVertical
 {
+    [self saveState];
     CGPoint center = CGPointZero;
     for (Station *s in selectedStations) {
         center.x += s.pos.x;
@@ -392,6 +391,7 @@
 
 -(void) newStation:(CGPoint)p
 {
+    [self saveState];
     MEWindow *wnd = (MEWindow*)self.window;
     Station *ss = wnd.selectedStation;
     Station *s2 = [self selectStationAt:&p];
@@ -448,6 +448,7 @@
 
 -(void) newSplinePoint:(CGPoint)p
 {
+    [self saveState];
     Station *s1 = ((MEWindow*)self.window).selectedStation;
     Segment *ss = [self selectSegmentAt:&p];
     if(ss != nil) {
@@ -479,6 +480,7 @@
 
 -(void)changeTransferAt:(CGPoint)p
 {
+    [self saveState];
     Transfer *tr = nil;
     currentStation = [self selectStationAt:&p];
     if(currentStation == nil) return;
@@ -514,6 +516,7 @@
 
 -(void)combineTwoLines:(CGPoint)p
 {
+    [self saveState];
     currentStation = [self selectStationAt:&p];
     Station *s1 = ((MEWindow*)self.window).selectedStation;
     Line *l1 = s1.line;
@@ -568,6 +571,43 @@
         [wnd selectSegment:nil];
         [wnd selectLine:nil];
     }
+}
+
+-(BOOL)isFlipped
+{
+    return YES;
+}
+
+-(void)saveState
+{
+    MEWindow *wnd = (MEWindow*)self.window;
+    NSMutableDictionary *state = [NSMutableDictionary dictionary];
+    [state setValue:[[wnd selectedLine] superCopy] forKey:@"line"];
+    [state setValue:[[wnd selectedSegment] superCopy] forKey:@"segment"];
+    [state setValue:[[wnd selectedStation] superCopy] forKey:@"station"];
+    NSMutableSet *csel = [NSMutableSet set];
+    for(Station *s in selectedStations) {
+        [csel addObject:[s superCopy]];
+    }
+    [state setValue:csel forKey:@"selectedStations"];
+    [cityMap saveState];
+    [undo addObject:state];
+}
+
+-(BOOL)restoreState
+{
+    if([cityMap undoNumber] > 0) {
+        NSDictionary *state = [undo lastObject];
+        [cityMap restoreState];
+        selectedStations = [state valueForKey:@"selectedStations"];
+        MEWindow *wnd = (MEWindow*)self.window;
+        [wnd selectLine:[state valueForKey:@"line"]];
+        [wnd selectSegment:[state valueForKey:@"segment"]];
+        [wnd selectStation:[state valueForKey:@"station"]];
+        [undo removeLastObject];
+        return YES;
+    }
+    return NO;
 }
 
 @end

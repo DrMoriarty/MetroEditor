@@ -395,14 +395,12 @@
     NSString *fn = nil;
 
     NSFileManager *manager = [NSFileManager defaultManager];
-    NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSString *mapDirPath = [cacheDir stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@",dir]];
-    if ([[manager contentsOfDirectoryAtPath:mapDirPath error:nil] count]>0) {
-        NSDirectoryEnumerator *dirEnum = [manager enumeratorAtPath:mapDirPath];
+    if ([[manager contentsOfDirectoryAtPath:dir error:nil] count]>0) {
+        NSDirectoryEnumerator *dirEnum = [manager enumeratorAtPath:dir];
         NSString *file;
         while (file = [dirEnum nextObject]) {
             if ([file isEqualToString: fileName]) {
-                fn = [NSString stringWithFormat:@"%@/%@", mapDirPath, file];
+                fn = [NSString stringWithFormat:@"%@/%@", dir, file];
                 break;
             }
         }

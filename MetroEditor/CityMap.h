@@ -26,6 +26,13 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 @class Line;
 @class CityMap;
 
+@protocol SuperCopyable <NSObject>
+
+-(id)superCopy;
+-(void)dropCopy;
+
+@end
+
 @interface ComplexText : NSObject {
 @private
     NSString *string, *source;
@@ -51,7 +58,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void) moveBy:(CGPoint)delta;
 @end
 
-@interface Transfer : NSObject {
+@interface Transfer : NSObject <SuperCopyable> {
 @private
     NSMutableSet* stations;
     CGFloat time;
@@ -59,6 +66,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     CGLayerRef transferLayer;
     BOOL active;
     CityMap* map;
+    Transfer *_deepCopy;
 }
 @property (nonatomic, readonly) NSMutableSet* stations;
 @property (nonatomic, assign) CGFloat time;
@@ -73,7 +81,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void) tuneStations;
 @end
 
-@interface Station : NSObject {
+@interface Station : NSObject <SuperCopyable> {
 @private
     CGPoint pos;
     CGRect boundingBox;
@@ -115,6 +123,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     NSMutableArray *backwardWay;
     NSMutableArray *firstStations;
     NSMutableArray *lastStations;
+    Station *_deepCopy;
 }
 
 @property (nonatomic, readonly) NSMutableArray* relation;
@@ -188,7 +197,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void)calcTangentFrom:(CGPoint)p1 to:(CGPoint)p2;
 @end
 
-@interface Segment : NSObject {
+@interface Segment : NSObject <SuperCopyable> {
 @private
     Station *start;
     Station *end;
@@ -197,6 +206,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     CGRect boundingBox;
     BOOL active, isSpline;
     CGMutablePathRef path;
+    Segment *_deepCopy;
 }
 @property (nonatomic, readonly) Station* start;
 @property (nonatomic, readonly) Station* end;
@@ -218,7 +228,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void)movePoint:(int)index by:(CGPoint)delta;
 @end
 
-@interface Line : NSObject {
+@interface Line : NSObject <SuperCopyable> {
 @private
     NSString *name;
     NSString *shortName;
@@ -231,6 +241,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     BOOL twoStepsDraw;
     CityMap *map;
     BOOL hasAltNames;
+    Line *_deepCopy;
 }
 @property (nonatomic, retain) NSColor* color;
 @property (nonatomic, assign) int pinColor;
@@ -278,6 +289,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     CGFloat gpsCircleScale;
     NSColor *backgroundColor;
     BOOL hasAltNames;
+    NSMutableArray *undo;
 @public
     CGFloat PredrawScale;
     CGFloat LineWidth;
@@ -354,4 +366,8 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 
 -(NSMutableArray*) describePath:(NSArray*)pathMap;
 -(void)updateBoundingBox;
+
+-(void)saveState;
+-(BOOL)restoreState;
+-(NSUInteger)undoNumber;
 @end
