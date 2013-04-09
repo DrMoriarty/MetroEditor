@@ -610,4 +610,25 @@
     return NO;
 }
 
+-(void)loadImage:(NSString *)imageFile
+{
+    if(sourceImage == nil) {
+        sourceImage = [[NSImageView alloc] initWithFrame:self.frame];
+        //[sourceImage setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+        NSMutableArray *sv = [NSMutableArray arrayWithArray:self.subviews];
+        [sv addObject:sourceImage];
+        self.subviews = sv;
+        sourceImage.alphaValue = 0.5;
+    }
+    NSImage *img = [[NSImage alloc] initWithContentsOfFile:imageFile];
+    [sourceImage setImage:img];
+    [sourceImage setImageScaling:NSImageScaleAxesIndependently];
+    [sourceImage setFrame:self.frame];
+}
+
+-(void)unloadImage
+{
+    [sourceImage setImage:nil];
+}
+
 @end

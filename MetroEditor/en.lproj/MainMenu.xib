@@ -254,6 +254,32 @@
 									<reference key="NSOnImage" ref="35465992"/>
 									<reference key="NSMixedImage" ref="502551668"/>
 								</object>
+								<object class="NSMenuItem" id="17774718">
+									<reference key="NSMenu" ref="720053764"/>
+									<string key="NSTitle">Load source image...</string>
+									<string key="NSKeyEquiv"/>
+									<int key="NSMnemonicLoc">2147483647</int>
+									<reference key="NSOnImage" ref="35465992"/>
+									<reference key="NSMixedImage" ref="502551668"/>
+								</object>
+								<object class="NSMenuItem" id="545199822">
+									<reference key="NSMenu" ref="720053764"/>
+									<string key="NSTitle">Disable source image</string>
+									<string key="NSKeyEquiv"/>
+									<int key="NSMnemonicLoc">2147483647</int>
+									<reference key="NSOnImage" ref="35465992"/>
+									<reference key="NSMixedImage" ref="502551668"/>
+								</object>
+								<object class="NSMenuItem" id="785155607">
+									<reference key="NSMenu" ref="720053764"/>
+									<bool key="NSIsDisabled">YES</bool>
+									<bool key="NSIsSeparator">YES</bool>
+									<string key="NSTitle"/>
+									<string key="NSKeyEquiv"/>
+									<int key="NSMnemonicLoc">2147483647</int>
+									<reference key="NSOnImage" ref="35465992"/>
+									<reference key="NSMixedImage" ref="502551668"/>
+								</object>
 								<object class="NSMenuItem" id="776162233">
 									<reference key="NSMenu" ref="720053764"/>
 									<string key="NSTitle">Close</string>
@@ -1765,7 +1791,6 @@
 											<string key="NSFrame">{{229, 11}, {33, 33}}</string>
 											<reference key="NSSuperview" ref="407513069"/>
 											<reference key="NSWindow"/>
-											<reference key="NSNextKeyView"/>
 											<int key="NSViewLayerContentsRedrawPolicy">2</int>
 											<string key="NSReuseIdentifierKey">_NS:9</string>
 											<bool key="NSEnabled">YES</bool>
@@ -2701,6 +2726,22 @@
 					<int key="connectionID">535</int>
 				</object>
 				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">loadImage:</string>
+						<reference key="source" ref="1014"/>
+						<reference key="destination" ref="17774718"/>
+					</object>
+					<int key="connectionID">853</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">unloadImage:</string>
+						<reference key="source" ref="1014"/>
+						<reference key="destination" ref="545199822"/>
+					</object>
+					<int key="connectionID">854</int>
+				</object>
+				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">mapView</string>
 						<reference key="source" ref="972006081"/>
@@ -3019,6 +3060,9 @@
 							<reference ref="425164168"/>
 							<reference ref="579971712"/>
 							<reference ref="1010469920"/>
+							<reference ref="17774718"/>
+							<reference ref="545199822"/>
+							<reference ref="785155607"/>
 						</array>
 						<reference key="parent" ref="379814623"/>
 					</object>
@@ -5342,6 +5386,21 @@
 						<reference key="object" ref="150201090"/>
 						<reference key="parent" ref="407513069"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">850</int>
+						<reference key="object" ref="17774718"/>
+						<reference key="parent" ref="720053764"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">851</int>
+						<reference key="object" ref="545199822"/>
+						<reference key="parent" ref="720053764"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">852</int>
+						<reference key="object" ref="785155607"/>
+						<reference key="parent" ref="720053764"/>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -5682,13 +5741,16 @@
 				<string key="839.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="840.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="841.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="850.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="851.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="852.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="92.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 			</dictionary>
 			<dictionary class="NSMutableDictionary" key="unlocalizedProperties"/>
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">849</int>
+			<int key="maxID">854</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -5738,6 +5800,7 @@
 						<string key="alignVertical:">id</string>
 						<string key="lineColorChanged:">id</string>
 						<string key="lineNameChanged:">id</string>
+						<string key="loadImage:">id</string>
 						<string key="openDocument:">id</string>
 						<string key="removeLine:">id</string>
 						<string key="removeSegment:">id</string>
@@ -5745,6 +5808,7 @@
 						<string key="scaleChanged:">id</string>
 						<string key="splineChanged:">id</string>
 						<string key="stationNameChanged:">id</string>
+						<string key="unloadImage:">id</string>
 					</dictionary>
 					<dictionary class="NSMutableDictionary" key="actionInfosByName">
 						<object class="IBActionInfo" key="alignHorizontal:">
@@ -5761,6 +5825,10 @@
 						</object>
 						<object class="IBActionInfo" key="lineNameChanged:">
 							<string key="name">lineNameChanged:</string>
+							<string key="candidateClassName">id</string>
+						</object>
+						<object class="IBActionInfo" key="loadImage:">
+							<string key="name">loadImage:</string>
 							<string key="candidateClassName">id</string>
 						</object>
 						<object class="IBActionInfo" key="openDocument:">
@@ -5789,6 +5857,10 @@
 						</object>
 						<object class="IBActionInfo" key="stationNameChanged:">
 							<string key="name">stationNameChanged:</string>
+							<string key="candidateClassName">id</string>
+						</object>
+						<object class="IBActionInfo" key="unloadImage:">
+							<string key="name">unloadImage:</string>
 							<string key="candidateClassName">id</string>
 						</object>
 					</dictionary>

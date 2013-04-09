@@ -45,6 +45,7 @@ enum {SELECT_NONE=0, SELECT_SINGLE, SELECT_MULTI};
     int currentSegmentPoint;
     CGRect multiSelectRect;
     BOOL selectText;
+    NSImageView *sourceImage;
     
     NSMutableArray *undo;
 }
@@ -82,5 +83,8 @@ enum {SELECT_NONE=0, SELECT_SINGLE, SELECT_MULTI};
 
 -(void)saveState;
 -(BOOL)restoreState;
+
+-(void)loadImage:(NSString*)imageFile;
+-(void)unloadImage;
 
 @end

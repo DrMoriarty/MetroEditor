@@ -40,6 +40,8 @@
 -(IBAction)removeSegment:(id)sender;
 -(IBAction)removeStation:(id)sender;
 -(IBAction)removeLine:(id)sender;
+-(IBAction)loadImage:(id)sender;
+-(IBAction)unloadImage:(id)sender;
 
 -(void)scaleBy:(CGFloat)factor;
 
