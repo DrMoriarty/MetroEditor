@@ -71,6 +71,11 @@
     }];
 }
 
+-(IBAction)saveDocument:(id)sender
+{
+    [_mapView.cityMap saveMap];
+}
+
 -(IBAction)scaleChanged:(id)sender
 {
     CGFloat scale = [self.slider floatValue] / 100.f;
@@ -140,6 +145,13 @@
     if(_selectedSegment) {
         [_mapView saveState];
         _selectedSegment.isSpline = self.splineSegment.state;
+        [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
+    }
+}
+
+-(IBAction)undo:(id)sender
+{
+    if([_mapView restoreState]) {
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
 }

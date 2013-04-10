@@ -30,6 +30,7 @@
 @property (nonatomic, strong) IBOutlet NSTableView *table;
 
 - (IBAction)openDocument:(id)sender;
+- (IBAction)saveDocument:(id)sender;
 - (IBAction)scaleChanged:(id)sender;
 -(IBAction)stationNameChanged:(id)sender;
 -(IBAction)lineNameChanged:(id)sender;
@@ -42,6 +43,7 @@
 -(IBAction)removeLine:(id)sender;
 -(IBAction)loadImage:(id)sender;
 -(IBAction)unloadImage:(id)sender;
+-(IBAction)undo:(id)sender;
 
 -(void)scaleBy:(CGFloat)factor;
 

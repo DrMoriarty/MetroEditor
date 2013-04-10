@@ -81,7 +81,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void) tuneStations;
 @end
 
-@interface Station : NSObject <SuperCopyable> {
+@interface Station : NSObject <SuperCopyable, NSCopying> {
 @private
     CGPoint pos;
     CGRect boundingBox;
@@ -115,7 +115,6 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     int way1, way2;
     NSMutableDictionary *transferDriving;
     CGFloat defaultTransferDriving;
-    NSMutableDictionary *transferWay;
     NSMutableDictionary *reverseTransferWay;
     int defaultTransferWay;
     CGPoint gpsCoords;
@@ -124,6 +123,8 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     NSMutableArray *firstStations;
     NSMutableArray *lastStations;
     Station *_deepCopy;
+@public
+    NSMutableDictionary *transferWay;
 }
 
 @property (nonatomic, readonly) NSMutableArray* relation;
@@ -290,6 +291,8 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
     NSColor *backgroundColor;
     BOOL hasAltNames;
     NSMutableArray *undo;
+    NSString *mapFile;
+    NSString *trpFile;
 @public
     CGFloat PredrawScale;
     CGFloat LineWidth;
@@ -332,6 +335,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void) loadMap:(NSString *)mapName;
 -(void) loadOldMap:(NSString *)mapFile trp:(NSString*)trpFile;
 -(void) loadNewMap:(NSString *)mapFile trp:(NSString*)trpFile;
+-(void) saveMap;
 -(void) initVars ;
 // предварительная отрисовка трансферов и названий станций
 -(void) predraw;

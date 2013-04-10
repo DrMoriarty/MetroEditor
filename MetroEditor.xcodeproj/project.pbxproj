@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		510ACBA11714547100E267CD /* NSOutputStream+WriteNSString.m in Sources */ = {isa = PBXBuildFile; fileRef = 510ACBA01714547000E267CD /* NSOutputStream+WriteNSString.m */; };
 		511237E61701DA3A0007B61D /* NSView+DisableSubAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 511237E51701DA390007B61D /* NSView+DisableSubAdditions.m */; };
 		51B1073316C10B1600970797 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51B1073216C10B1600970797 /* Cocoa.framework */; };
 		51B1073D16C10B1700970797 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 51B1073B16C10B1700970797 /* InfoPlist.strings */; };
@@ -36,6 +37,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		510ACB9F1714547000E267CD /* NSOutputStream+WriteNSString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOutputStream+WriteNSString.h"; sourceTree = "<group>"; };
+		510ACBA01714547000E267CD /* NSOutputStream+WriteNSString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSOutputStream+WriteNSString.m"; sourceTree = "<group>"; };
 		511237E41701DA390007B61D /* NSView+DisableSubAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSView+DisableSubAdditions.h"; sourceTree = "<group>"; };
 		511237E51701DA390007B61D /* NSView+DisableSubAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSView+DisableSubAdditions.m"; sourceTree = "<group>"; };
 		51B1072E16C10B1600970797 /* MetroEditor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetroEditor.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -142,6 +145,8 @@
 				51F3901C16D4BC40008CA08E /* ini */,
 				51F3901316D4AF58008CA08E /* CityMap.h */,
 				51F3901416D4AF58008CA08E /* CityMap.m */,
+				510ACB9F1714547000E267CD /* NSOutputStream+WriteNSString.h */,
+				510ACBA01714547000E267CD /* NSOutputStream+WriteNSString.m */,
 				51F3901516D4AF58008CA08E /* MapView.h */,
 				51F3901616D4AF58008CA08E /* MapView.m */,
 				51F3901716D4AF58008CA08E /* VectorLayer.h */,
@@ -292,6 +297,7 @@
 				51F3903116D4BC40008CA08E /* utils.m in Sources */,
 				51F3903416D4C96F008CA08E /* MEWindow.m in Sources */,
 				511237E61701DA3A0007B61D /* NSView+DisableSubAdditions.m in Sources */,
+				510ACBA11714547100E267CD /* NSOutputStream+WriteNSString.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

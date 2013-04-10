@@ -11,6 +11,7 @@
 //#import "ManagedObjects.h"
 //#import "tubeAppDelegate.h"
 //#import "Utils.h"
+#import "NSOutputStream+WriteNSString.h"
 
 #define MAX_UNDO 1000
 
@@ -75,6 +76,21 @@ int StringToWay(NSString* str)
         }
     }
     return way;
+}
+
+NSString * WayToString(int way)
+{
+    NSMutableString *str = [NSMutableString string];
+    if(way & WAY_BEGIN) {
+        [str appendString:@"S"];
+    }
+    if(way & WAY_MIDDLE) {
+        [str appendString:@"M"];
+    }
+    if(way & WAY_END) {
+        [str appendString:@"E"];
+    }
+    return str;
 }
 
 // CG Helpres
@@ -1275,35 +1291,35 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 -(void)setTransferDriving:(CGFloat)_driving to:(Station *)target
 {
     if(defaultTransferDriving == 0) defaultTransferDriving = _driving;
-    [transferDriving setObject:[NSNumber numberWithFloat:_driving] forKey:target.name];
+    [transferDriving setObject:[NSNumber numberWithFloat:_driving] forKey:target];
 }
 
 -(void)setTransferWay:(int)way to:(Station *)target
 {
     if(defaultTransferWay == NOWAY) defaultTransferWay = way;
-    [transferWay setObject:[NSNumber numberWithInt:way] forKey:target.name];
+    [transferWay setObject:[NSNumber numberWithInt:way] forKey:target];
 }
 
 -(void)setTransferWay:(int)way from:(Station *)target
 {
-    [reverseTransferWay setObject:[NSNumber numberWithInt:way] forKey:target.name];
+    [reverseTransferWay setObject:[NSNumber numberWithInt:way] forKey:target];
 }
 
 -(void)setTransferWays:(NSArray *)ways to:(Station *)target
 {
-    [transferWay setObject:ways forKey:target.name];
+    [transferWay setObject:ways forKey:target];
 }
 
 -(CGFloat)transferDrivingTo:(Station *)target
 {
-    NSNumber *dr = [transferDriving objectForKey:target.name];
+    NSNumber *dr = [transferDriving objectForKey:target];
     if(dr != nil) return [dr floatValue];
     return defaultTransferDriving;
 }
 
 -(int)transferWayTo:(Station *)target
 {
-    id w = [transferWay objectForKey:target.name];
+    id w = [transferWay objectForKey:target];
     if(w == nil) return defaultTransferWay;
     if([w isKindOfClass:[NSArray class]]) return [[w objectAtIndex:0] intValue];
     else if ([w isKindOfClass:[NSNumber class]]) return [w intValue];
@@ -1312,7 +1328,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 
 -(int)transferWayFrom:(Station *)target
 {
-    NSNumber *w = [reverseTransferWay objectForKey:target.name];
+    NSNumber *w = [reverseTransferWay objectForKey:target];
     if(w != nil) return [w intValue];
     return NOWAY;
 }
@@ -1330,7 +1346,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 
 -(int)megaTransferWayFrom:(Station *)prevStation to:(Station *)transferStation
 {
-    NSArray *ways = [transferWay objectForKey:transferStation.name];
+    NSArray *ways = [transferWay objectForKey:transferStation];
     if(ways == nil) {
 #ifdef DEBUG
         NSLog(@"no way from %@ to %@", name, transferStation.name);
@@ -1349,7 +1365,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 
 -(int) megaTransferWayFrom:(Station *)prevStation to:(Station *)transferStation andNextStation:(Station *)nextStation
 {
-    NSArray *ways = [transferWay objectForKey:transferStation.name];
+    NSArray *ways = [transferWay objectForKey:transferStation];
     if(ways == nil) {
 #ifdef DEBUG
         NSLog(@"no way from %@ to %@", name, transferStation.name);
@@ -1482,9 +1498,18 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         _deepCopy->text = [text copy];
         _deepCopy->altText = [altText copy];
         _deepCopy->bothText = [bothText copy];
-        _deepCopy->transferDriving = [transferDriving mutableCopy];
-        _deepCopy->transferWay = [transferWay mutableCopy];
-        _deepCopy->reverseTransferWay = [reverseTransferWay mutableCopy];
+        _deepCopy->transferDriving = [NSMutableDictionary dictionary];
+        for(Station *s in [transferDriving allKeys]) {
+            [_deepCopy->transferDriving setObject:[transferDriving objectForKey:s] forKey:[s superCopy]];
+        }
+        _deepCopy->transferWay = [NSMutableDictionary dictionary];
+        for(Station *s in [transferWay allKeys]) {
+            [_deepCopy->transferWay setObject:[transferWay objectForKey:s] forKey:[s superCopy]];
+        }
+        _deepCopy->reverseTransferWay = [NSMutableDictionary dictionary];
+        for(Station *s in [reverseTransferWay allKeys]) {
+            [_deepCopy->reverseTransferWay setObject:[reverseTransferWay objectForKey:s] forKey:[s superCopy]];
+        }
         _deepCopy->forwardWay = [NSMutableArray array];
         for (Station *s in forwardWay) {
             [_deepCopy->forwardWay addObject:[s superCopy]];
@@ -2422,8 +2447,8 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     //NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
     //NSString *mapDirPath = [cacheDir stringByAppendingPathComponent:[NSString stringWithFormat:@"/%@",[mapName lowercaseString]]];
     
-    NSString *mapFile = @"";
-    NSString *trpFile = @"";
+    mapFile = @"";
+    trpFile = @"";
     NSString *trpNewFile =  @"";
     BOOL useTrpNew=NO;
     
@@ -2470,11 +2495,11 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 #endif
                 return;
             } else {
-                NSString *trpFile = [files objectAtIndex:0];
+                trpFile = [files objectAtIndex:0];
                 [self loadOldMap:mapFile trp:trpFile];
             }
         } else {
-            NSString *trpFile = [files objectAtIndex:0];
+            trpFile = [files objectAtIndex:0];
             [self loadNewMap:mapFile trp:trpFile];
         }
 
@@ -2522,15 +2547,15 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     [self resetMap:NO];
 }
 
--(void) loadOldMap:(NSString *)mapFile trp:(NSString *)trpFile {
+-(void) loadOldMap:(NSString *)_mapFile trp:(NSString *)_trpFile {
 
 	int err;
 	INIParser* parserTrp, *parserMap;
 
 	parserTrp = [[INIParser alloc] init];
 	parserMap = [[INIParser alloc] init];
-	err = [parserTrp parse:[trpFile UTF8String]];
-    err = [parserMap parse:[mapFile UTF8String]];
+	err = [parserTrp parse:[_trpFile UTF8String]];
+    err = [parserMap parse:[_mapFile UTF8String]];
 
     NSString *bgfile = [parserMap get:@"ImageFileName" section:@"Options"];
     if([bgfile length] > 0) backgroundImageFile = bgfile;
@@ -2657,6 +2682,165 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 
     [self calcGraph];
     [self predraw];
+}
+
+-(void) saveMap
+{
+    NSOutputStream *map = [NSOutputStream outputStreamToFileAtPath:mapFile append:NO];
+    NSOutputStream *trp = [NSOutputStream outputStreamToFileAtPath:trpFile append:NO];
+    [map open];
+
+    [map write:@"[Options]\n"];
+    [map write:[NSString stringWithFormat:@"StationDiameter=%d\n", (int)StationDiameter]];
+    if(backgroundImageFile) [map write:[NSString stringWithFormat:@"ImageFileName=%@\n", backgroundImageFile]];
+    if(foregroundImageFile) [map write:[NSString stringWithFormat:@"UpperImageFileName=%@\n", foregroundImageFile]];
+    [map write:[NSString stringWithFormat:@"LinesWidth=%d\n", (int)LineWidth]];
+    [map write:[NSString stringWithFormat:@"DisplayTransfers=%d\n", (int)TrKind]];
+    [map write:[NSString stringWithFormat:@"DisplayStations=%d\n", (int)StKind]];
+    [map write:[NSString stringWithFormat:@"FontSize=%d\n", (int)FontSize]];
+    [map write:[NSString stringWithFormat:@"MaxScale=%f\n", maxScale]];
+    [map write:[NSString stringWithFormat:@"GpsMarkScale=%d\n", (int)gpsCircleScale]];
+    [map write:[NSString stringWithFormat:@"BackgroundColor=%@\n", [self hexForColor:backgroundColor]]];
+    [map write:@"\n"];
+
+    for (Line *l in mapLines) {
+        [map write:[NSString stringWithFormat:@"[%@]\n", l.name]];
+        NSString *c = [self hexForColor:l.color];
+        [map write:[NSString stringWithFormat:@"Color=%@\n", c]];
+        [map write:[NSString stringWithFormat:@"LabelsColor=%@\n", c]];
+        [map write:@"Coordinates="];
+        BOOL first = YES;
+        for (Station *s in l.stations) {
+            if(!first) [map write:@", "];
+            [map write:[NSString stringWithFormat:@"%d,%d", (int)s.pos.x, (int)s.pos.y]];
+            first = NO;
+        }
+        first = YES;
+        [map write:@"\nRects="];
+        for (Station *s in l.stations) {
+            if(!first) [map write:@", "];
+            [map write:[NSString stringWithFormat:@"%d,%d,%d,%d", (int)s.textRect.origin.x, (int)s.textRect.origin.y, (int)s.textRect.size.width, (int)s.textRect.size.height]];
+            first = NO;
+        }
+        [map write:@"\nRect=\n\n"];
+    }
+    
+    [map write:@"[AdditionalNodes]\n"];
+    int an = 1;
+    for (Line *l in mapLines) {
+        for (Station *st in l.stations) {
+            for (Segment *s in st.segment) {
+                if([s.linePoints count] > 0) {
+                    [map write:[NSString stringWithFormat:@"%d=%@,%@,%@", an, l.name, st.name, s.end.name]];
+                    for (NSValue *v in s.linePoints) {
+                        CGPoint p = [v pointValue];
+                        [map write:[NSString stringWithFormat:@", %d,%d", (int)p.x, (int)p.y]];
+                    }
+                    if(s.isSpline) {
+                        [map write:@", spline"];
+                    }
+                    [map write:@"\n"];
+                    an++;
+                }
+            }
+        }
+        [map write:@"\n"];
+    }
+    [map close];
+
+    [trp open];
+    int ln = 1;
+    int brnum = 1;
+    for (Line *l in mapLines) {
+        NSMutableSet *starts = [NSMutableSet set];
+        NSMutableSet *ends = [NSMutableSet set];
+        [trp write:[NSString stringWithFormat:@"[Line%d]\n", ln]];
+        [trp write:[NSString stringWithFormat:@"Name=%@\n", l.name]];
+        for (Station *s in l.stations) {
+            [trp write:[NSString stringWithFormat:@"%d\t%@ %f,%f\t,\t%@\t%@\n", s.index, s.nameSource, s.gpsCoords.x, s.gpsCoords.y, WayToString(s.way1), WayToString(s.way2)]];
+            [starts addObjectsFromArray:s.firstStations];
+            [ends addObjectsFromArray:s.lastStations];
+        }
+        [trp write:@"\n"];
+        NSMutableArray *branches = [NSMutableArray array];
+        NSMutableArray *drivings = [NSMutableArray array];
+        for (Station *s in starts) {
+            [self detectBranch:branches andDriving:drivings fromStation:s branch:nil andDriving:nil withEndStations:ends withBackStations:nil];
+        }
+        int num = brnum;
+        for(NSMutableString *s in branches) {
+            [trp write:[NSString stringWithFormat:@"branch%d = %@\n", num, s]];
+            num ++;
+        }
+        num = brnum;
+        for(NSMutableString *s in drivings) {
+            [trp write:[NSString stringWithFormat:@"driving%d = %@\n", num, s]];
+            num ++;
+        }
+        brnum += MAX([branches count], [drivings count]);
+        ln ++;
+        [trp write:@"\n"];
+    }
+    
+    [trp write:@"[Transfers]\n"];
+    
+    int num = 1;
+    for (Transfer *t in transfers) {
+        for (Station *s1 in t.stations) {
+            for(Station *s2 in t.stations) {
+                if(s1 != s2) {
+                    NSArray* transferWays = [s1->transferWay objectForKey:s2];
+                    [trp write:[NSString stringWithFormat:@"%03d=%@,%@,%@,%@,%d, %@, %@, %@, %@\n", num, s1.line.name, s1.name, s2.line.name, s2.name, (int)t.time, WayToString([[transferWays objectAtIndex:0] intValue]), WayToString([[transferWays objectAtIndex:1] intValue]), WayToString([[transferWays objectAtIndex:2] intValue]), WayToString([[transferWays objectAtIndex:3] intValue])]];
+                    num ++;
+                }
+            }
+        }
+    }
+    
+    [trp close];
+}
+
+-(void) detectBranch:(NSMutableArray*)branches andDriving:(NSMutableArray*)drivings fromStation:(Station*)s branch:(NSMutableString*)branch andDriving:(NSMutableString*)driving withEndStations:(NSSet*)ends withBackStations:(NSMutableSet*)backs
+{
+    if(branch == nil) branch = [NSMutableString string];
+    if(driving == nil) driving = [NSMutableString string];
+    do {
+        if([branch length] > 0) [branch appendFormat:@", %d", s.index];
+        else [branch appendFormat:@"<>%d", s.index];
+        if([driving length] > 0) [driving appendFormat:@", %d", s.driving];
+        else [driving appendFormat:@"%d", s.driving];
+        
+        if([backs containsObject:s]) {
+            [branches addObject:[branch copy]];
+            [drivings addObject:[driving copy]];
+            return;
+        }
+        if(backs == nil) backs = [NSMutableSet setWithObject:s];
+        else [backs addObject:s];
+        
+        switch([s.segment count]) {
+            case 0:
+                [branches addObject:[branch copy]];
+                [drivings addObject:[driving copy]];
+                return;
+            case 1:
+                if([ends containsObject:s]) {
+                    [branches addObject:[branch copy]];
+                    [drivings addObject:[driving copy]];
+                }
+                s = [[s.segment lastObject] end];
+                break;
+            default:
+                if([ends containsObject:s]) {
+                    [branches addObject:[branch copy]];
+                    [drivings addObject:[driving copy]];
+                }
+                for(Segment* s1 in s.segment) {
+                    [self detectBranch:branches andDriving:drivings fromStation:s1.end branch:branch andDriving:driving withEndStations:ends withBackStations:[backs mutableCopy]];
+                }
+                return;
+        }
+    } while (YES);
 }
 
 - (void) loadPlacesForMap:(NSString*)mapName {
@@ -3258,6 +3442,13 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
                                                       blue:((float) b / 255.0f)
                                                      alpha:1.0f]];
 	
+}
+
+-(NSString*)hexForColor:(NSColor*)color
+{
+    CGFloat components[4];
+    [color getComponents:components];
+    return [NSString stringWithFormat:@"%02x%02x%02x", (int)(components[0]*256), (int)(components[1]*256), (int)(components[2]*256)];
 }
 
 -(void) calcGraph {
