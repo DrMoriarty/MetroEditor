@@ -80,6 +80,9 @@ int StringToWay(NSString* str)
 
 NSString * WayToString(int way)
 {
+    if(way == NOWAY) {
+        return @"";
+    }
     NSMutableString *str = [NSMutableString string];
     if(way & WAY_BEGIN) {
         [str appendString:@"S"];
@@ -1428,7 +1431,12 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 
 -(id)copyWithZone:(NSZone*)zone
 {
-    Station *s = [[[self class] allocWithZone:zone] init];
+    return self;
+}
+
+-(id)simpleCopy
+{
+    Station *s = [[[self class] alloc] init];
     if(s) {
         s->pos = pos;
         s->boundingBox = boundingBox;
@@ -1475,7 +1483,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 -(id)superCopy
 {
     if(_deepCopy == nil) {
-        _deepCopy = [self copy];
+        _deepCopy = [self simpleCopy];
         _deepCopy->name = [name copy];
         _deepCopy->segment = [NSMutableArray array];
         for(Segment *s in segment) {
@@ -2727,11 +2735,15 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     
     [map write:@"[AdditionalNodes]\n"];
     int an = 1;
+    NSMutableDictionary *addnodes = [NSMutableDictionary dictionary];
     for (Line *l in mapLines) {
         for (Station *st in l.stations) {
             for (Segment *s in st.segment) {
                 if([s.linePoints count] > 0) {
-                    [map write:[NSString stringWithFormat:@"%d=%@,%@,%@", an, l.name, st.name, s.end.name]];
+                    NSString *key = [NSString stringWithFormat:@"%@,%@,%@", l.name, st.name, s.end.name];
+                    if([addnodes valueForKey:key] != nil) continue;
+                    [map write:[NSString stringWithFormat:@"%d=%@", an, key]];
+                    [addnodes setValue:@"node" forKey:key];
                     for (NSValue *v in s.linePoints) {
                         CGPoint p = [v pointValue];
                         [map write:[NSString stringWithFormat:@", %d,%d", (int)p.x, (int)p.y]];
@@ -2753,19 +2765,19 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     int brnum = 1;
     for (Line *l in mapLines) {
         NSMutableSet *starts = [NSMutableSet set];
-        NSMutableSet *ends = [NSMutableSet set];
+        //NSMutableSet *ends = [NSMutableSet set];
         [trp write:[NSString stringWithFormat:@"[Line%d]\n", ln]];
         [trp write:[NSString stringWithFormat:@"Name=%@\n", l.name]];
         for (Station *s in l.stations) {
             [trp write:[NSString stringWithFormat:@"%d\t%@ %f,%f\t,\t%@\t%@\n", s.index, s.nameSource, s.gpsCoords.x, s.gpsCoords.y, WayToString(s.way1), WayToString(s.way2)]];
             [starts addObjectsFromArray:s.firstStations];
-            [ends addObjectsFromArray:s.lastStations];
+            //[ends addObjectsFromArray:s.lastStations];
         }
         [trp write:@"\n"];
         NSMutableArray *branches = [NSMutableArray array];
         NSMutableArray *drivings = [NSMutableArray array];
         for (Station *s in starts) {
-            [self detectBranch:branches andDriving:drivings fromStation:s branch:nil andDriving:nil withEndStations:ends withBackStations:nil];
+            [self detectBranch:branches andDriving:drivings fromStation:s branch:nil andDriving:nil withEndStations:nil withBackStations:nil];
         }
         int num = brnum;
         for(NSMutableString *s in branches) {
@@ -2800,7 +2812,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     [trp close];
 }
 
--(void) detectBranch:(NSMutableArray*)branches andDriving:(NSMutableArray*)drivings fromStation:(Station*)s branch:(NSMutableString*)branch andDriving:(NSMutableString*)driving withEndStations:(NSSet*)ends withBackStations:(NSMutableSet*)backs
+-(void) detectBranch:(NSMutableArray*)branches andDriving:(NSMutableArray*)drivings fromStation:(Station*)s branch:(NSMutableString*)branch andDriving:(NSMutableString*)driving withEndStations:(NSArray*)ends withBackStations:(NSMutableSet*)backs
 {
     if(branch == nil) branch = [NSMutableString string];
     if(driving == nil) driving = [NSMutableString string];
@@ -2835,8 +2847,8 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
                     [branches addObject:[branch copy]];
                     [drivings addObject:[driving copy]];
                 }
-                for(Segment* s1 in s.segment) {
-                    [self detectBranch:branches andDriving:drivings fromStation:s1.end branch:branch andDriving:driving withEndStations:ends withBackStations:[backs mutableCopy]];
+                for(Station* s1 in s.forwardWay) {
+                    [self detectBranch:branches andDriving:drivings fromStation:s1 branch:[branch mutableCopy] andDriving:[driving mutableCopy] withEndStations:s.lastStations withBackStations:[backs mutableCopy]];
                 }
                 return;
         }
@@ -3448,7 +3460,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 {
     CGFloat components[4];
     [color getComponents:components];
-    return [NSString stringWithFormat:@"%02x%02x%02x", (int)(components[0]*256), (int)(components[1]*256), (int)(components[2]*256)];
+    return [NSString stringWithFormat:@"%02x%02x%02x", (int)(components[0]*255), (int)(components[1]*255), (int)(components[2]*255)];
 }
 
 -(void) calcGraph {

@@ -14,6 +14,8 @@
     __weak Station *_selectedStation;
     __weak Segment *_selectedSegment;
     __weak Line *_selectedLine;
+    NSString *savePath;
+    BOOL saveFlag;
 }
 
 @property (nonatomic, strong) CityMap* cityMap;

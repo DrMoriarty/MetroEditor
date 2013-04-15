@@ -64,6 +64,8 @@
                 NSURL* url = [urls objectAtIndex:i];
                 if([url isFileURL]) {
                     [self loadMap:[url path]];
+                    savePath = [url path];
+                    [self setWindowTitle];
                     break;
                 }
             }
@@ -74,6 +76,8 @@
 -(IBAction)saveDocument:(id)sender
 {
     [_mapView.cityMap saveMap];
+    saveFlag = NO;
+    [self setWindowTitle];
 }
 
 -(IBAction)scaleChanged:(id)sender
@@ -117,7 +121,7 @@
 -(IBAction)stationNameChanged:(id)sender
 {
     if(_selectedStation) {
-        [_mapView saveState];
+        [self saveState];
         [_selectedStation setNameSource:[self.stationName stringValue]];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
@@ -126,7 +130,7 @@
 -(IBAction)lineNameChanged:(id)sender
 {
     if(_selectedLine) {
-        [_mapView saveState];
+        [self saveState];
         _selectedLine.name = [self.lineName stringValue];
     }
 }
@@ -134,7 +138,7 @@
 -(IBAction)lineColorChanged:(id)sender
 {
     if(_selectedStation) {
-        [_mapView saveState];
+        [self saveState];
         [_selectedStation.line setColor:[self.lineColor color]];
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
@@ -143,7 +147,7 @@
 -(IBAction)splineChanged:(id)sender
 {
     if(_selectedSegment) {
-        [_mapView saveState];
+        [self saveState];
         _selectedSegment.isSpline = self.splineSegment.state;
         [_mapView setNeedsDisplayInRect:[_mapView visibleRect]];
     }
@@ -228,7 +232,7 @@
 -(IBAction)removeSegment:(id)sender
 {
     if(_selectedSegment != nil) {
-        [_mapView saveState];
+        [self saveState];
         [_selectedSegment.start.segment removeObject:_selectedSegment];
         [_selectedSegment.end.backSegment removeObject:_selectedSegment];
         [self selectSegment:nil];
@@ -239,7 +243,7 @@
 -(IBAction)removeStation:(id)sender
 {
     if(_selectedStation != nil) {
-        [_mapView saveState];
+        [self saveState];
         for (Segment *s in _selectedStation.segment) {
             [s.end.backSegment removeObject:s];
         }
@@ -262,7 +266,7 @@
 -(IBAction)removeLine:(id)sender
 {
     if(_selectedLine != nil) {
-        [_mapView saveState];
+        [self saveState];
         for(Station *s in _selectedLine.stations) {
             if(s.transfer != nil) {
                 [s.transfer removeStation:s];
@@ -351,14 +355,44 @@
     if([tableColumn.identifier isEqualToString:@"1"]) {
         return s.name;
     } else if([tableColumn.identifier isEqualToString:@"2"]) {
-        return [NSValue valueWithPoint:s.gpsCoords];
+        return [NSNumber numberWithFloat:s.gpsCoords.x];
+    } else if([tableColumn.identifier isEqualToString:@"3"]) {
+        return [NSNumber numberWithFloat:s.gpsCoords.y];
     }
     return nil;
 }
 
 -(void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row
 {
-    
+    Line *l = _selectedLine;
+    Station *s = [l.stations objectAtIndex:row];
+    if([tableColumn.identifier isEqualToString:@"1"]) {
+        //
+    } else if([tableColumn.identifier isEqualToString:@"2"]) {
+        CGPoint p = s.gpsCoords;
+        p.x = [object floatValue];
+        s.gpsCoords = p;
+    } else if([tableColumn.identifier isEqualToString:@"3"]) {
+        CGPoint p = s.gpsCoords;
+        p.y = [object floatValue];
+        s.gpsCoords = p;
+    }
+}
+
+-(void)setWindowTitle
+{
+    if(saveFlag) {
+        [self setTitle:[NSString stringWithFormat:@"MetroEditor - %@ *", savePath]];
+    } else {
+        [self setTitle:[NSString stringWithFormat:@"MetroEditor - %@", savePath]];
+    }
+}
+
+-(void)saveState
+{
+    [_mapView saveState];
+    saveFlag = YES;
+    [self setWindowTitle];
 }
 
 #pragma mark - NSTableViewDelegate
