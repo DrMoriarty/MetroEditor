@@ -1149,10 +1149,6 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
                 }
             }
         }
-        NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:[NSFont fontWithName:map->TEXT_FONT size:map->FontSize], NSFontAttributeName, nil];
-        CGRect s = [name boundingRectWithSize:textRect.size options:0 attributes:attributes];
-        if(textRect.size.width < s.size.width) textRect.size.width = s.size.width;
-        if(textRect.size.height < s.size.height) textRect.size.height = s.size.height;
     }
     return self;
 }
@@ -3376,7 +3372,17 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     } else [ways addObject:[NSNumber numberWithInt:NOWAY]];
     [ss1 setTransferWays:ways to:ss2];
     if(ss1.transfer != nil && ss2.transfer != nil) {
-        
+        if(ss1.transfer != ss2.transfer) {
+            Transfer *t1 = ss1.transfer;
+            Transfer *t2 = ss2.transfer;
+            NSSet *sts = [t2.stations copy];
+            while([t2.stations count] > 0) {
+                [t2 removeStation:[t2.stations anyObject]];
+            }
+            for (Station *s in sts) {
+                [t1 addStation:s];
+            }
+        }
     } else if(ss1.transfer) {
         [ss1.transfer addStation:ss2];
     } else if(ss2.transfer) {
