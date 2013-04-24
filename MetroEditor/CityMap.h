@@ -79,6 +79,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(void) draw:(CGContextRef)context;
 -(void) predraw:(CGContextRef)context;
 -(void) tuneStations;
+-(void) fixTextCoordinates;
 @end
 
 @interface Station : NSObject <SuperCopyable, NSCopying> {
@@ -182,6 +183,7 @@ typedef enum {NAME_NORMAL=0, NAME_ALTERNATIVE=1, NAME_BOTH=2} DrawNameType;
 -(int) megaTransferWayFrom:(Station *)prevStation to:(Station*) transferStation andNextStation:(Station *) nextStation;
 -(void) moveBy:(CGPoint)delta;
 -(void) moveTextBy:(CGPoint)delta;
+-(void) moveTextTo:(CGRect)rect;
 @end
 
 @interface TangentPoint : NSObject {

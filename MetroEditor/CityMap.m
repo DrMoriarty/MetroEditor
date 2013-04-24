@@ -979,6 +979,23 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     }
 }
 
+-(void)fixTextCoordinates
+{
+    Station *main = nil;
+    for (Station *s in stations) {
+        if(s.drawName) {
+            main = s;
+            break;
+        }
+    }
+    if(nil == main) return;
+    for (Station *s in stations) {
+        if(s != main) {
+            [s moveTextTo:main.textRect];
+        }
+    }
+}
+
 -(id)copyWithZone:(NSZone*)zone
 {
     Transfer *t = [[[self class] allocWithZone:zone] init];
@@ -1423,6 +1440,16 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     [text moveBy:delta];
     [altText moveBy:delta];
     [bothText moveBy:delta];
+}
+
+-(void) moveTextTo:(CGRect)rect
+{
+    CGPoint delta = CGPointMake(rect.origin.x - textRect.origin.x, rect.origin.y - textRect.origin.y);
+    [text moveBy:delta];
+    [altText moveBy:delta];
+    [bothText moveBy:delta];
+    tapTextArea = text.boundingBox;
+    textRect = rect;
 }
 
 -(id)copyWithZone:(NSZone*)zone
@@ -3393,6 +3420,10 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         [tr addStation:ss1];
         [tr addStation:ss2];
         [transfers addObject:tr];
+    }
+    
+    for (Transfer *t in transfers) {
+        [t fixTextCoordinates];
     }
 }
 
