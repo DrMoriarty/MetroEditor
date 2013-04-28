@@ -3697,7 +3697,7 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     }
     for (Line *l in mapLines) {
         for (Station *s in l.stations) {
-            if(CGRectContainsPoint(s.tapTextArea, *point)) {
+            if(s.drawName && CGRectContainsPoint(s.tapTextArea, *point)) {
                 [stationName setString:s.name];
                 *point = CGPointMake(s.pos.x, s.pos.y);
                 if(text) *text = YES;
