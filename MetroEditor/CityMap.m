@@ -2820,18 +2820,26 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     [trp write:@"[Transfers]\n"];
     
     int num = 1;
+    
     for (Transfer *t in transfers) {
         for (Station *s1 in t.stations) {
             for(Station *s2 in t.stations) {
                 if(s1 != s2) {
                     NSArray* transferWays = [s1->transferWay objectForKey:s2];
-                    [trp write:[NSString stringWithFormat:@"%03d=%@,%@,%@,%@,%d, %@, %@, %@, %@\n", num, s1.line.name, s1.name, s2.line.name, s2.name, (int)t.time, WayToString([[transferWays objectAtIndex:0] intValue]), WayToString([[transferWays objectAtIndex:1] intValue]), WayToString([[transferWays objectAtIndex:2] intValue]), WayToString([[transferWays objectAtIndex:3] intValue])]];
+                    if([[transferWays class] isSubclassOfClass:[NSArray class]]) {
+                        [trp write:[NSString stringWithFormat:@"%03d=%@,%@,%@,%@,%d, %@, %@, %@, %@\n", num, s1.line.name, s1.name, s2.line.name, s2.name, (int)t.time, WayToString([[transferWays objectAtIndex:0] intValue]), WayToString([[transferWays objectAtIndex:1] intValue]), WayToString([[transferWays objectAtIndex:2] intValue]), WayToString([[transferWays objectAtIndex:3] intValue])]];
+                    } else if([[transferWays class] isSubclassOfClass:[NSNumber class]]) {
+                        int trw = [(NSNumber*)transferWays intValue];
+                        NSString *trs = WayToString(trw);
+                        [trp write:[NSString stringWithFormat:@"%03d=%@,%@,%@,%@,%d, %@, %@, %@, %@\n", num, s1.line.name, s1.name, s2.line.name, s2.name, (int)t.time, trs, trs, trs, trs]];
+                    } else {
+                        NSLog(@"error: transfer ways class %@", [transferWays class]);
+                    }
                     num ++;
                 }
             }
         }
     }
-    
     [trp close];
 }
 
@@ -3497,7 +3505,12 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
 {
     CGFloat components[4];
     [color getComponents:components];
-    return [NSString stringWithFormat:@"%02x%02x%02x", (int)(components[0]*255), (int)(components[1]*255), (int)(components[2]*255)];
+    if([color numberOfComponents] < 3) {
+        int c = (int)(components[0]*255);
+        return [NSString stringWithFormat:@"%02x%02x%02x", c, c, c];
+    } else {
+        return [NSString stringWithFormat:@"%02x%02x%02x", (int)(components[0]*255), (int)(components[1]*255), (int)(components[2]*255)];
+    }
 }
 
 -(void) calcGraph {
