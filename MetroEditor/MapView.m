@@ -487,6 +487,7 @@
     if(currentStation.transfer != nil) {
         tr = currentStation.transfer;
         [tr removeStation:currentStation];
+        currentStation.drawName = YES;
         if([tr.stations count] <= 0) {
             [cityMap.transfers removeObject:tr];
         }

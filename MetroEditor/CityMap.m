@@ -510,20 +510,23 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         CGContextDrawLayerInRect(context, rect, predrawedText);
         CGContextRestoreGState(context);
     } else {
+        int alignment = kCTTextAlignmentCenter;
+        if(align & 0x4) alignment = kCTTextAlignmentLeft;
+        else if(align & 0x8) alignment = kCTTextAlignmentRight;
         NSMutableDictionary *heights = [[NSMutableDictionary alloc] initWithCapacity:[words count]];
-        NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:font, NSFontAttributeName, [NSColor blackColor], NSForegroundColorAttributeName, [NSColor clearColor], NSBackgroundColorAttributeName, nil];
+        NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+        style.lineBreakMode = NSLineBreakByWordWrapping;
+        style.alignment = alignment;
+        NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:font, NSFontAttributeName, [NSColor blackColor], NSForegroundColorAttributeName, [NSColor clearColor], NSBackgroundColorAttributeName, style, NSParagraphStyleAttributeName, nil];
         CGSize size = CGSizeZero;
         for (NSString *w in words) {
-            CGRect s = [w boundingRectWithSize:rect.size options:0 attributes:attributes];
+            CGRect s = [w boundingRectWithSize:rect.size options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingTruncatesLastVisibleLine attributes:attributes];
             size.height += s.size.height;
             if(s.size.width > size.width) size.width = s.size.width;
             [heights setValue:[NSNumber numberWithInt:s.size.height] forKey:w];
         }
         CGContextSaveGState(context);
         //CGContextScaleCTM(context, scale, scale);
-        int alignment = kCTTextAlignmentCenter;
-        if(align & 0x4) alignment = kCTTextAlignmentLeft;
-        else if(align & 0x8) alignment = kCTTextAlignmentRight;
         CGRect r = CGRectZero;
         r.size = size;
         for (NSString *w in words) {
@@ -566,9 +569,9 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
         CGContextRotateCTM(context, angle);
         for (NSString *w in words) {
             int height = [[heights valueForKey:w] intValue];
+            [w drawWithRect:r options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingTruncatesLastVisibleLine attributes:attributes];
             r.origin.y += height;
             r.size.height -= height;
-            [w drawWithRect:r options:0 attributes:attributes];
         }
         CGContextRestoreGState(context);
     }
