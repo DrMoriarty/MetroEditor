@@ -503,13 +503,30 @@
         [selectedStations addObject:currentStation];
         if(tr != nil) {
             [tr addStation:currentStation];
+            for(Station *s in tr.stations) {
+                if(s != currentStation) {
+                    [s setTransferDriving:1 to:currentStation];
+                }
+                NSMutableArray *ways = [NSMutableArray arrayWithObjects:[NSNumber numberWithInt:7], [NSNumber numberWithInt:7], [NSNumber numberWithInt:7], [NSNumber numberWithInt:7], nil];
+                [s setTransferWays:ways to:currentStation];
+            }
         } else {
             tr = [[Transfer alloc] initWithMap:cityMap];
             for (Station *s in selectedStations) {
                 [tr addStation:s];
             }
             [cityMap.transfers addObject:tr];
+            for(Station *s1 in tr.stations) {
+                for(Station *s2 in tr.stations) {
+                    if(s1 != s2) {
+                        [s1 setTransferDriving:1 to:s2];
+                    }
+                    NSMutableArray *ways = [NSMutableArray arrayWithObjects:[NSNumber numberWithInt:7], [NSNumber numberWithInt:7], [NSNumber numberWithInt:7], [NSNumber numberWithInt:7], nil];
+                    [s1 setTransferWays:ways to:s2];
+                }
+            }
         }
+        
         [self updateSelection];
     }
 }
