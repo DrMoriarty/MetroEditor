@@ -8,7 +8,7 @@
 
 - (char *)ltrim: (char *)line {
 	
-    if(line[0] == 0xef && line[1] == 0xbb && line[2] == 0xbf) line += 3;
+    if(line[0] == '\xef' && line[1] == '\xbb' && line[2] == '\xbf') line += 3;
 	while (*line && isspace (*line)) line++;
 	return line;
 }

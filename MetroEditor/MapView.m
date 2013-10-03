@@ -35,11 +35,6 @@
     return [MyTiledLayer class];
 }
 
--(void) setTransform:(CGAffineTransform)transform
-{
-    super.transform = transform;
-}
-
 - (CGSize) size {
     return CGSizeMake(cityMap.w, cityMap.h);
 }

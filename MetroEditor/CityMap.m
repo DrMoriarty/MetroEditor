@@ -130,7 +130,6 @@ void drawSelectionRect(CGContextRef context, CGRect rect)
     if(!_selectionPattern) {
         _selectionColorSpace = CGColorSpaceCreatePattern(NULL);
         _selectionPattern = CGPatternCreate(NULL, CGRectMake(0, 0, 4, 4), CGAffineTransformIdentity, 4, 4, kCGPatternTilingConstantSpacingMinimalDistortion, true, &_selectionPatternCallbacks);
-        CGColorSpaceRelease(_selectionColorSpace);
     }
     CGContextSetStrokeColorSpace(context, _selectionColorSpace);
     CGContextSetLineWidth(context, 2);
